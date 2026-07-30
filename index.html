@@ -60,7 +60,7 @@
   .card-body h3 { font-size: 14px; line-height: 1.4; margin-bottom: 10px; }
   .preco-original { font-size: 13px; color: #999; text-decoration: line-through; }
   .preco-venda { font-size: 22px; color: #e63946; font-weight: bold; margin: 2px 0; }
-  .aviso-disponibilidade { font-size: 10px; color: #888; margin: 6px 0 10px; line-height: 1.3; }
+  .economia { font-size: 12px; color: #00a86b; font-weight: 600; margin: 2px 0 6px; }
   .btn-whatsapp {
     display: block; background: #25D366; color: white; text-align: center;
     padding: 11px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; transition: background .2s;
@@ -128,7 +128,8 @@
     <div class="grid" id="grid"></div>
 
     <div class="footer">
-      Ousamais &copy; 2026 - Precos sujeitos a alteracao sem aviso previo
+      Ousamais &copy; 2026 - Precos sujeitos a alteracao sem aviso previo<br>
+      <a href="/admin.html" style="color:#999;font-size:11px;text-decoration:none">Admin</a>
     </div>
   </main>
 
@@ -248,8 +249,10 @@ function renderizar(produtos) {
 
     if (temDesconto) {
       var desconto = Math.round((1 - p.preco_venda / precoMarca) * 100);
+      var economia = precoMarca - p.preco_venda;
       tagDesc = '<span class="tag-desconto">-' + desconto + '%</span>';
-      htmlPrecoAntigo = '<div class="preco-original">' + formatarPreco(precoMarca) + '</div>';
+      htmlPrecoAntigo = '<div class="preco-original">' + formatarPreco(precoMarca) + '</div>'
+        + '<div class="economia">Voce economiza ' + formatarPreco(economia) + '</div>';
     }
 
     return '<div class="card">'
@@ -264,8 +267,7 @@ function renderizar(produtos) {
       + '<h3>' + nome + '</h3>'
       + htmlPrecoAntigo
       + '<div class="preco-venda">' + pv + '</div>'
-      + '<div class="aviso-disponibilidade">&#9888; Verifique a disponibilidade com nosso consultor</div>'
-      + '<a class="btn-whatsapp" href="' + link + '" target="_blank">Consultar via WhatsApp</a>'
+      + '<a class="btn-whatsapp" href="' + link + '" target="_blank">Comprar via WhatsApp</a>'
       + '</div></div>';
   }).join('');
 }

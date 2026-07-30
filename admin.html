@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Ousamais</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; }
+  .header { background: #1a1a2e; color: white; padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+  .header h1 { font-size: 18px; }
+  .header a { color: #aaa; font-size: 13px; margin-left: auto; text-decoration: none; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .login-box { max-width: 360px; margin: 80px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.1); text-align: center; }
+  .login-box h2 { margin-bottom: 16px; font-size: 18px; }
+  .login-box input { width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+  .login-box input:focus { border-color: #1a1a2e; }
+  .login-box button { margin-top: 12px; padding: 10px 24px; background: #1a1a2e; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; width: 100%; }
+  .toolbar { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; align-items: center; }
+  .toolbar input { flex: 1; min-width: 200px; padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+  .toolbar input:focus { border-color: #1a1a2e; }
+  .toolbar select { padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; background: white; }
+  .stats { font-size: 13px; color: #888; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  th { background: #1a1a2e; color: white; padding: 10px 12px; font-size: 12px; text-align: left; text-transform: uppercase; letter-spacing: .5px; }
+  td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  tr:hover td { background: #fafafa; }
+  .nome-cell { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .preco-input { width: 90px; padding: 6px 8px; border: 2px solid #ddd; border-radius: 6px; font-size: 13px; text-align: center; outline: none; }
+  .preco-input:focus { border-color: #1a1a2e; }
+  .preco-input.tem-marca { border-color: #00a86b; background: #f0fff4; }
+  .btn-salvar { padding: 5px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; background: #1a1a2e; color: white; }
+  .btn-salvar:disabled { opacity: .4; cursor: default; }
+  .btn-salvando { background: #999; }
+  .ok-msg { color: #00a86b; font-size: 11px; font-weight: 600; }
+  .pagination { display: flex; gap: 8px; justify-content: center; align-items: center; margin: 20px 0; }
+  .pagination button { padding: 8px 14px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .pagination button:disabled { opacity: .4; cursor: default; }
+  .pagination button:hover:not(:disabled) { background: #f0f0f0; }
+  .pagination span { font-size: 13px; color: #888; }
+  .loading { text-align: center; padding: 40px; color: #999; }
+  .spinner { border: 3px solid #f0f0f0; border-top: 3px solid #1a1a2e; border-radius: 50%; width: 28px; height: 28px; animation: spin .8s linear infinite; margin: 0 auto 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .erro { color: #e63946; text-align: center; padding: 20px; }
+  .filtro-marca { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filtro-marca button { padding: 4px 12px; border: 1px solid #ddd; background: white; border-radius: 12px; font-size: 11px; cursor: pointer; }
+  .filtro-marca button.ativo { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+  .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  @media (max-width: 768px) {
+    table { font-size: 12px; }
+    td, th { padding: 8px; }
+    .nome-cell { max-width: 140px; }
+    .preco-input { width: 70px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Admin - Ousamais</h1>
+  <a href="/" target="_blank">Ver Catalogo</a>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+var SUPABASE_URL = 'https://qfewcmoyzrezyxasvqny.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZXdjbW95enJlenl4YXN2cW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0MDQ5NzAsImV4cCI6MjEwMDk4MDk3MH0.vSCoZXe46EZ4fPYjJGve_MxXmARwEElo0XWEA4u7uFI';
+var SENHA = 'admin123';
+var LIMITE = 50;
+
+var app = document.getElementById('app');
+var produtos = [];
+var total = 0;
+var pagina = 0;
+var busca = '';
+var filtroMarca = '';
+var editando = {};
+
+function login() {
+  app.innerHTML = '<div class="login-box"><h2>Acesso Restrito</h2><input type="password" id="senhaInput" placeholder="Digite a senha" onkeydown="if(event.key===\'Enter\')entrar()"><button onclick="entrar()">Entrar</button></div>';
+  document.getElementById('senhaInput').focus();
+}
+
+function entrar() {
+  if (document.getElementById('senhaInput').value === SENHA) {
+    carregar();
+  } else {
+    alert('Senha incorreta');
+  }
+}
+
+function api(path, opts) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' }
+  }, opts || {}));
+}
+
+function carregar() {
+  pagina = 0;
+  render();
+  contar();
+  buscar();
+}
+
+function contar() {
+  var filtros = 'ativo=eq.true' + (filtroMarca ? '&preco_marca=is.' + (filtroMarca === 'com' ? 'not.null' : 'null') : '');
+  api('produtos?select=count&' + filtros).then(function(r) { return r.json(); }).then(function(d) { total = d[0].count; render(); }).catch(function() {});
+}
+
+function buscar() {
+  var offset = pagina * LIMITE;
+  var filtros = 'ativo=eq.true&order=categoria.asc,nome.asc&limit=' + LIMITE + '&offset=' + offset;
+  if (filtroMarca) {
+    filtros += '&preco_marca=is.' + (filtroMarca === 'com' ? 'not.null' : 'null');
+  }
+  if (busca) {
+    filtros += '&nome=like.*' + encodeURIComponent(busca) + '*';
+  }
+  api('produtos?select=id,nome,categoria,preco_venda,preco_marca&' + filtros).then(function(r) { return r.json(); }).then(function(d) {
+    produtos = d;
+    render();
+  }).catch(function(e) { app.innerHTML = '<div class="erro">Erro: ' + e.message + '</div>'; });
+}
+
+function salvar(id) {
+  var input = document.getElementById('pm_' + id);
+  if (!input) return;
+  var val = input.value.replace(',', '.').trim();
+  var num = val ? parseFloat(val) : null;
+  if (val && (isNaN(num) || num <= 0)) { alert('Valor invalido'); return; }
+  var btn = document.getElementById('btn_' + id);
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+  btn.className = 'btn-salvar btn-salvando';
+
+  var data = num ? { preco_marca: num } : { preco_marca: null };
+  api('produtos?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(data), headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' } })
+    .then(function(r) {
+      if (!r.ok) throw new Error(r.status);
+      var ok = document.getElementById('ok_' + id);
+      if (num) { input.className = 'preco-input tem-marca'; ok.textContent = 'Salvo!'; } else { input.className = 'preco-input'; ok.textContent = 'Removido!'; }
+      btn.textContent = 'Salvar';
+      btn.className = 'btn-salvar';
+      btn.disabled = false;
+      setTimeout(function() { ok.textContent = ''; }, 2000);
+    })
+    .catch(function(e) {
+      btn.textContent = 'Erro';
+      btn.className = 'btn-salvar';
+      btn.disabled = false;
+      alert('Erro ao salvar: ' + e.message);
+    });
+}
+
+function formatarPreco(valor) {
+  if (valor == null) return '';
+  return 'R$ ' + parseFloat(valor).toFixed(2).replace('.', ',');
+}
+
+function render() {
+  if (!produtos) return;
+
+  var paginas = Math.ceil(total / LIMITE);
+
+  app.innerHTML = '<div class="toolbar">'
+    + '<input type="text" id="buscaInput" placeholder="Buscar produto..." value="' + busca + '" onkeydown="if(event.key===\'Enter\'){busca=this.value;carregar()}">'
+    + '<select id="catFiltro" onchange="filtroMarca=this.value;carregar()">'
+    + '<option value="">Todas as Marcas</option>'
+    + '<option value="com"' + (filtroMarca === 'com' ? ' selected' : '') + '>Com Preco Marca</option>'
+    + '<option value="sem"' + (filtroMarca === 'sem' ? ' selected' : '') + '>Sem Preco Marca</option>'
+    + '</select>'
+    + '</div>'
+    + '<div class="stats">' + total + ' produtos ativos' + (filtroMarca ? ' | Filtrando: ' + (filtroMarca === 'com' ? 'Com preco marca' : 'Sem preco marca') : '') + '</div>'
+    + '<div style="overflow-x:auto"><table>'
+    + '<thead><tr><th>Produto</th><th>Categoria</th><th>Nosso Preco</th><th>Preco Marca</th><th></th></tr></thead>'
+    + '<tbody>'
+    + produtos.map(function(p) {
+        var pm = p.preco_marca;
+        var desconto = pm ? Math.round((1 - parseFloat(p.preco_venda) / parseFloat(pm)) * 100) : 0;
+        return '<tr>'
+          + '<td class="nome-cell">' + p.nome + '</td>'
+          + '<td>' + (p.categoria || '-') + '</td>'
+          + '<td>' + formatarPreco(p.preco_venda) + '</td>'
+          + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
+          + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
+          + '</td>'
+          + '<td><button class="btn-salvar" id="btn_' + p.id + '" onclick="salvar(\'' + p.id + '\')">Salvar</button> <span class="ok-msg" id="ok_' + p.id + '"></span></td>'
+          + '</tr>';
+      }).join('')
+    + '</tbody></table></div>'
+    + '<div class="pagination">'
+    + '<button onclick="pagina=0;buscar()" ' + (pagina === 0 ? 'disabled' : '') + '>Primeira</button>'
+    + '<button onclick="pagina=Math.max(0,pagina-1);buscar()" ' + (pagina === 0 ? 'disabled' : '') + '>Anterior</button>'
+    + '<span>Pagina ' + (pagina + 1) + ' de ' + paginas + '</span>'
+    + '<button onclick="pagina=Math.min(' + (paginas - 1) + ',pagina+1);buscar()" ' + (pagina >= paginas - 1 ? 'disabled' : '') + '>Proxima</button>'
+    + '<button onclick="pagina=' + (paginas - 1) + ';buscar()" ' + (pagina >= paginas - 1 ? 'disabled' : '') + '>Ultima</button>'
+    + '</div>';
+}
+
+login();
+</script>
+</body>
+</html>
