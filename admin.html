@@ -150,7 +150,7 @@ function buscar() {
 function salvar(id) {
   var input = document.getElementById('pm_' + id);
   if (!input) return;
-  var val = input.value.replace(',', '.').trim();
+  var val = input.value.replace(/\./g, '').replace(',', '.').trim();
   var num = val ? parseFloat(val) : null;
   if (val && (isNaN(num) || num <= 0)) { alert('Valor invalido'); return; }
   var btn = document.getElementById('btn_' + id);
