@@ -43,3 +43,13 @@ ORDER BY categoria, nome;
 -- Índices para busca
 CREATE INDEX idx_produtos_categoria ON produtos(categoria);
 CREATE INDEX idx_produtos_ativo ON produtos(ativo);
+
+-- Tabela de configuração (logo, banner etc)
+CREATE TABLE config (
+  chave TEXT PRIMARY KEY,
+  valor TEXT
+);
+
+INSERT INTO config (chave, valor) VALUES
+  ('logo_url', ''),
+  ('banner_url', '');
