@@ -240,22 +240,29 @@ function renderizar(produtos) {
     var img = p.imagem_url || '';
     var nome = p.nome;
     var cat = p.categoria || 'Geral';
-    var precoMercado = p.preco_venda * 1.5;
-    var pm = formatarPreco(precoMercado);
     var pv = formatarPreco(p.preco_venda);
-    var desconto = Math.round((1 - p.preco_venda / precoMercado) * 100);
+    var precoMarca = p.preco_marca ? parseFloat(p.preco_marca) : 0;
+    var temDesconto = precoMarca > p.preco_venda;
+    var tagDesc = '';
+    var htmlPrecoAntigo = '';
+
+    if (temDesconto) {
+      var desconto = Math.round((1 - p.preco_venda / precoMarca) * 100);
+      tagDesc = '<span class="tag-desconto">-' + desconto + '%</span>';
+      htmlPrecoAntigo = '<div class="preco-original">' + formatarPreco(precoMarca) + '</div>';
+    }
 
     return '<div class="card">'
       + '<div class="card-img-wrap">'
       + (img
         ? '<img class="card-img" src="' + img + '" alt="' + nome + '" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML=\'<div class=card-img>Sem imagem</div>\'">'
         : '<div class="card-img">Sem imagem</div>')
-      + '<span class="tag-desconto">-' + desconto + '%</span>'
+      + tagDesc
       + '</div>'
       + '<div class="card-body">'
       + '<span class="categoria-tag">' + cat + '</span>'
       + '<h3>' + nome + '</h3>'
-      + '<div class="preco-original">' + pm + '</div>'
+      + htmlPrecoAntigo
       + '<div class="preco-venda">' + pv + '</div>'
       + '<div class="aviso-disponibilidade">&#9888; Verifique a disponibilidade com nosso consultor</div>'
       + '<a class="btn-whatsapp" href="' + link + '" target="_blank">Consultar via WhatsApp</a>'

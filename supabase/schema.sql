@@ -4,6 +4,7 @@ CREATE TABLE produtos (
   nome TEXT NOT NULL,
   preco_original DECIMAL(10,2) NOT NULL,
   preco_venda DECIMAL(10,2) NOT NULL,
+  preco_marca DECIMAL(10,2),
   categoria TEXT,
   imagem_url TEXT,
   ativo BOOLEAN DEFAULT TRUE,

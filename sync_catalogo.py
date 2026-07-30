@@ -101,6 +101,12 @@ def sync_supabase(produtos):
         nome = p.get("name", "Sem nome")
         preco_original = p.get("salePromotionalPrice") or p.get("salePrice") or 0
         preco_venda = round(preco_original * MARGEM_LUCRO, 2)
+        preco_marca = (p.get("price") or p.get("fullPrice") or p.get("listPrice")
+                       or p.get("originalPrice") or p.get("msrpPrice") or p.get("retailPrice"))
+        if preco_marca:
+            preco_marca = round(float(preco_marca), 2)
+            if preco_marca <= preco_venda:
+                preco_marca = None
         categoria = p.get("categoryName", "")
         imagem = p.get("image", "")
 
@@ -114,6 +120,7 @@ def sync_supabase(produtos):
             "nome": nome,
             "preco_original": preco_original,
             "preco_venda": preco_venda,
+            "preco_marca": preco_marca,
             "categoria": categoria,
             "imagem_url": imagem,
             "ativo": True,
