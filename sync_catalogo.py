@@ -62,8 +62,7 @@ def sync_supabase(produtos):
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
     ids_fornecedor = set()
-    inseridos = 0
-    atualizados = 0
+    produtos_para_sync = []
 
     for p in produtos:
         produto_id = p.get("_id")
@@ -81,7 +80,7 @@ def sync_supabase(produtos):
         elif imagem.startswith("/"):
             imagem = "https://firebasestorage.googleapis.com/v0/b/kyte-7c484.appspot.com/o/" + imagem.lstrip("/")
 
-        dados_produto = {
+        produtos_para_sync.append({
             "id": produto_id,
             "nome": nome,
             "preco_original": preco_original,
@@ -89,26 +88,25 @@ def sync_supabase(produtos):
             "categoria": categoria,
             "imagem_url": imagem,
             "ativo": True,
-        }
-
-        # Upsert: insere ou atualiza
-        resultado = supabase.table("produtos").upsert(dados_produto, on_conflict="id").execute()
+        })
         ids_fornecedor.add(produto_id)
 
-        if resultado.data:
-            if resultado.data[0].get("criado_em") == resultado.data[0].get("atualizado_em"):
-                inseridos += 1
-            else:
-                atualizados += 1
+    # Batch upsert (envia tudo de uma vez)
+    print(f"Enviando {len(produtos_para_sync)} produtos para o Supabase...")
+    resultado = supabase.table("produtos").upsert(produtos_para_sync, on_conflict="id").execute()
+    print(f"Sync concluido: {len(resultado.data)} produtos processados")
 
-    # Marcar como inativos produtos que não estão mais no catálogo
+    # Marcar como inativos os que nao estao mais no catalogo
+    print("Verificando produtos removidos do catalogo...")
     todos_bd = supabase.table("produtos").select("id").eq("ativo", True).execute()
+    desativados = 0
     for registro in todos_bd.data:
         if registro["id"] not in ids_fornecedor:
             supabase.table("produtos").update({"ativo": False}).eq("id", registro["id"]).execute()
-            print(f"  Desativado: {registro['id']} (removido do catalogo)")
+            desativados += 1
 
-    print(f"Inseridos: {inseridos} | Atualizados: {atualizados}")
+    if desativados:
+        print(f"Desativados: {desativados} produtos removidos do catalogo")
 
 
 def formatar_preco(valor):
