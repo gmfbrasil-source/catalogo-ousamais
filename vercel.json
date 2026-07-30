@@ -1,7 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "python inject_config.py",
   "outputDirectory": ".",
-  "public": true,
   "cleanUrls": true
 }

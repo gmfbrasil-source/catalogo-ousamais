@@ -89,23 +89,15 @@
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = window.SUPABASE_URL || '__SUPABASE_URL__';
-const SUPABASE_KEY = window.SUPABASE_KEY || '__SUPABASE_KEY__';
+const SUPABASE_URL = 'https://qfewcmoyzrezyxasvqny.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZXdjbW95enJlenl4YXN2cW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0MDQ5NzAsImV4cCI6MjEwMDk4MDk3MH0.vSCoZXe46EZ4fPYjJGve_MxXmARwEElo0XWEA4u7uFI';
 const WHATSAPP_NUMERO = '5575998078956';
 
 let todosProdutos = [];
 let categoriaAtiva = '';
-
-const supabase = SUPABASE_URL.startsWith('https')
-  ? supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY)
-  : null;
+const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function carregar() {
-  if (!supabase) {
-    document.getElementById('loading').innerHTML = 'Erro: Supabase nao configurado.';
-    return;
-  }
-
   const { data, error } = await supabase
     .from('catalogo_ativos')
     .select('*')
