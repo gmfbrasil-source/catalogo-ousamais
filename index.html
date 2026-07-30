@@ -27,12 +27,8 @@
   .sidebar-item:hover { background: #f8f8f8; color: #1a1a2e; }
   .sidebar-item.ativo { background: #f0f0ff; color: #1a1a2e; border-left-color: #1a1a2e; font-weight: 600; }
   .sidebar-item .count { margin-left: auto; font-size: 11px; color: #bbb; }
-  .sidebar-toggle {
-    display: none; position: fixed; bottom: 80px; left: 16px; z-index: 200;
-    width: 44px; height: 44px; border-radius: 50%; border: none; background: #1a1a2e; color: white;
-    font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.25);
-  }
-  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 150; }
+  .sidebar-toggle { display: none; }
+  .sidebar-overlay { display: none; }
 
   .content { flex: 1; padding: 20px; min-width: 0; }
 
@@ -82,8 +78,7 @@
   @media (max-width: 768px) {
     .sidebar { display: none; position: fixed; top: 0; left: 0; height: 100vh; max-height: 100vh; z-index: 200; border-radius: 0 16px 16px 0; box-shadow: 4px 0 20px rgba(0,0,0,.15); width: 260px; padding-top: 60px; }
     .sidebar.aberta { display: block; }
-    .sidebar-overlay.ativa { display: block; }
-    .sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+    .sidebar-overlay.ativa { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 150; }
     .topo-header .hamburger { display: block; }
     .layout { flex-direction: column; }
     .content { padding: 12px; }
@@ -109,7 +104,6 @@
     <div id="filtros"></div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir marcas">&#9776;</button>
 
   <main class="content">
     <div class="search-bar">
@@ -145,7 +139,7 @@ let categoriaAtiva = '';
 
 async function carregar() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/produtos?select=*&ativo=eq.true&order=categoria.asc`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/produtos?select=*&ativo=eq.true&order=categoria.asc&limit=2000`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
     });
     if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
@@ -198,7 +192,6 @@ function abrirSidebar() {
   document.getElementById('sidebarOverlay').classList.add('ativa');
 }
 
-document.getElementById('sidebarToggle').onclick = abrirSidebar;
 document.getElementById('hamburgerBtn').onclick = abrirSidebar;
 document.getElementById('sidebarOverlay').onclick = fecharSidebar;
 
