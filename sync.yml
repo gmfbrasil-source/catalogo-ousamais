@@ -1,0 +1,28 @@
+name: Sync Catálogo
+
+on:
+  schedule:
+    # Roda todo dia às 06:00 e 18:00 (horário de Brasília = UTC-3)
+    - cron: '0 9,21 * * *'
+  workflow_dispatch:  # Permite rodar manualmente pelo GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: pip install requests supabase
+
+      - name: Rodar sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          MARGEM_LUCRO: '1.30'
+        run: python sync_catalogo.py
