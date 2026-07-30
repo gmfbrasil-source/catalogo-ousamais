@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo Ousamais</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; }
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 30px 20px; text-align: center; }
+  .header h1 { font-size: 28px; margin-bottom: 5px; }
+  .header p { opacity: 0.8; font-size: 14px; }
+  .header .whatsapp-header { display: inline-block; margin-top: 10px; color: #25D366; text-decoration: none; font-weight: bold; font-size: 14px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .search-bar { margin-bottom: 20px; }
+  .search-bar input {
+    width: 100%; padding: 12px 16px; border: 2px solid #ddd; border-radius: 10px;
+    font-size: 16px; outline: none; transition: border-color 0.3s;
+  }
+  .search-bar input:focus { border-color: #1a1a2e; }
+  .filtros { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filtro-btn {
+    padding: 8px 16px; border: 2px solid #ddd; border-radius: 20px; background: white;
+    cursor: pointer; font-size: 13px; transition: all 0.3s;
+  }
+  .filtro-btn:hover { border-color: #1a1a2e; }
+  .filtro-btn.ativo { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .card {
+    background: white; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.3s;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .card-img {
+    width: 100%; height: 280px; object-fit: cover; background: #f0f0f0;
+    display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 14px;
+  }
+  .card-body { padding: 16px; }
+  .categoria-tag {
+    display: inline-block; background: #f0f0f0; padding: 4px 10px;
+    border-radius: 4px; font-size: 11px; color: #666; margin-bottom: 8px;
+  }
+  .card-body h3 { font-size: 14px; color: #333; line-height: 1.4; margin-bottom: 10px; }
+  .preco-original { font-size: 13px; color: #999; text-decoration: line-through; }
+  .preco-venda { font-size: 24px; color: #e63946; font-weight: bold; margin: 2px 0; }
+  .parcela { font-size: 13px; color: #666; margin: 5px 0 10px; }
+  .btn-whatsapp {
+    display: block; background: #25D366; color: white; text-align: center;
+    padding: 12px; border-radius: 8px; text-decoration: none;
+    font-weight: bold; font-size: 14px; transition: background 0.3s;
+  }
+  .btn-whatsapp:hover { background: #1da951; }
+  .loading { text-align: center; padding: 60px 20px; font-size: 18px; color: #999; }
+  .spinner { border: 3px solid #f0f0f0; border-top: 3px solid #1a1a2e; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .footer { text-align: center; padding: 30px; color: #999; font-size: 13px; }
+  .contador { text-align: center; color: #999; font-size: 13px; margin-bottom: 15px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Catálogo Ousamais</h1>
+  <p>Perfumes originais com os melhores preços</p>
+  <a class="whatsapp-header" href="https://wa.me/5575998078956" target="_blank">📲 Fale conosco no WhatsApp</a>
+</div>
+
+<div class="container">
+  <div class="search-bar">
+    <input type="text" id="busca" placeholder="Buscar produto..." oninput="filtrar()">
+  </div>
+
+  <div class="filtros" id="filtros"></div>
+
+  <div class="contador" id="contador"></div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    Carregando catalogo...
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="footer">
+  Ousamais &copy; 2026 - Precos sujeitos a alteracao sem aviso previo
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = window.SUPABASE_URL || '__SUPABASE_URL__';
+const SUPABASE_KEY = window.SUPABASE_KEY || '__SUPABASE_KEY__';
+const WHATSAPP_NUMERO = '5575998078956';
+
+let todosProdutos = [];
+let categoriaAtiva = '';
+
+const supabase = SUPABASE_URL.startsWith('https')
+  ? supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
+
+async function carregar() {
+  if (!supabase) {
+    document.getElementById('loading').innerHTML = 'Erro: Supabase nao configurado.';
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from('catalogo_ativos')
+    .select('*')
+    .order('categoria');
+
+  if (error) {
+    document.getElementById('loading').innerHTML = 'Erro ao carregar: ' + error.message;
+    return;
+  }
+
+  todosProdutos = data || [];
+  document.getElementById('loading').style.display = 'none';
+
+  renderizarFiltros();
+  renderizar();
+}
+
+function renderizarFiltros() {
+  const categorias = [...new Set(todosProdutos.map(p => p.categoria).filter(Boolean))];
+  const container = document.getElementById('filtros');
+
+  const btnTodos = document.createElement('button');
+  btnTodos.className = 'filtro-btn ativo';
+  btnTodos.textContent = 'Todos';
+  btnTodos.onclick = () => { categoriaAtiva = ''; document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo')); btnTodos.classList.add('ativo'); filtrar(); };
+  container.appendChild(btnTodos);
+
+  categorias.sort().forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'filtro-btn';
+    btn.textContent = cat;
+    btn.onclick = () => {
+      categoriaAtiva = cat;
+      document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+      btn.classList.add('ativo');
+      filtrar();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function filtrar() {
+  const busca = document.getElementById('busca').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  let produtos = todosProdutos;
+
+  if (categoriaAtiva) {
+    produtos = produtos.filter(p => p.categoria === categoriaAtiva);
+  }
+
+  if (busca) {
+    produtos = produtos.filter(p =>
+      p.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(busca)
+    );
+  }
+
+  renderizar(produtos);
+}
+
+function formatarPreco(valor) {
+  return 'R$ ' + valor.toFixed(2).replace('.', ',');
+}
+
+function renderizar(produtos) {
+  const grid = document.getElementById('grid');
+  const lista = produtos || todosProdutos;
+  const contador = document.getElementById('contador');
+
+  contador.textContent = lista.length + ' produto' + (lista.length !== 1 ? 's' : '');
+
+  grid.innerHTML = lista.map(p => {
+    const parcela = (p.preco_venda / 6).toFixed(2);
+    const texto = `Ola, quero aproveitar a oferta do ${p.nome}!`;
+    const link = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(texto)}`;
+    const img = p.imagem_url || '';
+
+    return `
+      <div class="card">
+        ${img
+          ? `<img class="card-img" src="${img}" alt="${p.nome}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22><rect fill=%22%23f0f0f0%22 width=%22280%22 height=%22280%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23ccc%22 font-size=%2220%22>Sem imagem</text></svg>'">`
+          : `<div class="card-img">Sem imagem</div>`
+        }
+        <div class="card-body">
+          <span class="categoria-tag">${p.categoria || 'Geral'}</span>
+          <h3>${p.nome}</h3>
+          <div class="preco-original">${formatarPreco(p.preco_original)}</div>
+          <div class="preco-venda">${formatarPreco(p.preco_venda)}</div>
+          <div class="parcela">Ou 6x de ${formatarPreco(parseFloat(parcela))} sem juros</div>
+          <a class="btn-whatsapp" href="${link}" target="_blank">Comprar via WhatsApp</a>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+carregar();
+</script>
+</body>
+</html>
