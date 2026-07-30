@@ -6,16 +6,16 @@
 <title>Catalogo Ousamais</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f2f1ed; color: #333; }
 
-  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
+  .header { background: linear-gradient(135deg, #0b2b40 0%, #1a3f55 100%); color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
   .header h1 { font-size: 22px; }
   .header p { font-size: 13px; opacity: .8; }
 
   .layout { display: flex; max-width: 1400px; margin: 0 auto; min-height: 100vh; }
 
   .sidebar {
-    width: 240px; min-width: 240px; background: white; border-right: 1px solid #eee;
+    width: 240px; min-width: 240px; background: white; border-right: 1px solid #e6e6e6;
     padding: 20px 0; position: sticky; top: 78px; align-self: flex-start; max-height: calc(100vh - 78px);
     overflow-y: auto; z-index: 50;
   }
@@ -24,58 +24,60 @@
     padding: 10px 16px; cursor: pointer; font-size: 14px; color: #555;
     transition: all .15s; border-left: 3px solid transparent; display: flex; align-items: center; gap: 8px;
   }
-  .sidebar-item:hover { background: #f8f8f8; color: #1a1a2e; }
-  .sidebar-item.ativo { background: #f0f0ff; color: #1a1a2e; border-left-color: #1a1a2e; font-weight: 600; }
+  .sidebar-item:hover { background: #eee8eb; color: #0b2b40; }
+  .sidebar-item.ativo { background: #eee8eb; color: #0b2b40; border-left-color: #f2b622; font-weight: 600; }
   .sidebar-item .count { margin-left: auto; font-size: 11px; color: #bbb; }
-  .sidebar-toggle { display: none; }
   .sidebar-overlay { display: none; }
 
   .content { flex: 1; padding: 20px; min-width: 0; }
 
   .search-bar input {
-    width: 100%; padding: 12px 16px; border: 2px solid #ddd; border-radius: 10px;
-    font-size: 15px; outline: none; transition: border-color .3s;
+    width: 100%; padding: 12px 16px; border: 2px solid #e6e6e6; border-radius: 10px;
+    font-size: 15px; outline: none; transition: border-color .3s; background: white;
   }
-  .search-bar input:focus { border-color: #1a1a2e; }
+  .search-bar input:focus { border-color: #f2b622; }
 
   .topo-header { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
   .topo-header .hamburger {
-    display: none; width: 36px; height: 36px; border: none; background: #1a1a2e; color: white;
+    display: none; width: 36px; height: 36px; border: none; background: #0b2b40; color: white;
     border-radius: 8px; font-size: 18px; cursor: pointer; flex-shrink: 0;
   }
   .contador { font-size: 13px; color: #999; margin-left: auto; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; align-items: stretch; }
-  .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); transition: transform .2s; display: flex; flex-direction: column; }
-  .card:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,.12); }
-  .card-img { width: 100%; height: 260px; object-fit: cover; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 13px; }
+  .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: transform .2s; display: flex; flex-direction: column; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+  .card-img { width: 100%; height: 260px; object-fit: cover; background: #f2f1ed; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 13px; }
   .card-img-wrap { position: relative; line-height: 0; }
   .tag-desconto {
-    position: absolute; top: 8px; right: 8px; background: #e63946; color: white;
+    position: absolute; top: 8px; right: 8px; background: #f2b622; color: #0b2b40;
     padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;
     line-height: 1;
   }
   .card-body { padding: 14px; display: flex; flex-direction: column; flex: 1; }
-  .categoria-tag { display: inline-block; background: #f0f0f0; padding: 3px 10px; border-radius: 4px; font-size: 11px; color: #666; margin-bottom: 8px; align-self: flex-start; }
-  .card-body h3 { font-size: 14px; line-height: 1.4; margin-bottom: 10px; flex: 1; }
+  .categoria-tag { display: inline-block; background: #eee8eb; padding: 3px 10px; border-radius: 4px; font-size: 11px; color: #666; margin-bottom: 8px; align-self: flex-start; }
+  .card-body h3 { font-size: 14px; line-height: 1.4; margin-bottom: 8px; flex: 1; color: #0b2b40; }
   .preco-original { font-size: 13px; color: #999; text-decoration: line-through; }
-  .preco-venda { font-size: 22px; color: #e63946; font-weight: bold; margin: 2px 0; }
-  .economia { font-size: 12px; color: #00a86b; font-weight: 600; margin: 2px 0 6px; }
+  .preco-venda { font-size: 22px; color: #0b2b40; font-weight: bold; margin: 2px 0; }
+  .economia { font-size: 12px; color: #f2b622; font-weight: 600; margin: 2px 0 6px; }
   .btn-whatsapp {
-    display: block; background: #25D366; color: white; text-align: center;
-    padding: 11px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; transition: background .2s; margin-top: auto;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: #25D366; color: white; text-align: center;
+    padding: 11px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;
+    transition: background .2s; margin-top: auto;
   }
   .btn-whatsapp:hover { background: #1da951; }
+  .btn-whatsapp svg { width: 18px; height: 18px; fill: white; flex-shrink: 0; }
 
   .loading { text-align: center; padding: 80px 20px; font-size: 16px; color: #999; }
-  .spinner { border: 3px solid #f0f0f0; border-top: 3px solid #1a1a2e; border-radius: 50%; width: 36px; height: 36px; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+  .spinner { border: 3px solid #e6e6e6; border-top: 3px solid #f2b622; border-radius: 50%; width: 36px; height: 36px; animation: spin .8s linear infinite; margin: 0 auto 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .footer { text-align: center; padding: 30px; color: #999; font-size: 13px; }
 
   .btn-topo {
     position: fixed; bottom: 24px; right: 24px; z-index: 200;
-    width: 44px; height: 44px; border-radius: 50%; border: none; background: #1a1a2e; color: white;
+    width: 44px; height: 44px; border-radius: 50%; border: none; background: #0b2b40; color: #f2b622;
     font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.25);
     display: none; align-items: center; justify-content: center; transition: opacity .3s;
   }
@@ -90,7 +92,6 @@
     .content { padding: 12px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
     .card-img { height: 180px; }
-    .preco-venda { font-size: 18px; }
     .header h1 { font-size: 18px; }
     .btn-topo { bottom: 16px; right: 16px; width: 40px; height: 40px; font-size: 18px; }
   }
@@ -267,7 +268,7 @@ function renderizar(produtos) {
       + '<h3>' + nome + '</h3>'
       + htmlPrecoAntigo
       + '<div class="preco-venda">' + pv + '</div>'
-      + '<a class="btn-whatsapp" href="' + link + '" target="_blank">Comprar via WhatsApp</a>'
+      + '<a class="btn-whatsapp" href="' + link + '" target="_blank"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>'
       + '</div></div>';
   }).join('');
 }
