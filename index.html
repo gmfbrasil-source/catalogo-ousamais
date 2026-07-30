@@ -52,8 +52,9 @@
   .card-body { padding: 14px; }
   .categoria-tag { display: inline-block; background: #f0f0f0; padding: 3px 10px; border-radius: 4px; font-size: 11px; color: #666; margin-bottom: 8px; }
   .card-body h3 { font-size: 14px; line-height: 1.4; margin-bottom: 10px; }
-  .preco-original { font-size: 12px; color: #999; text-decoration: line-through; }
+  .preco-original { font-size: 13px; color: #999; text-decoration: line-through; }
   .preco-venda { font-size: 22px; color: #e63946; font-weight: bold; margin: 2px 0; }
+  .economia { font-size: 12px; color: #00a86b; font-weight: 600; margin: 2px 0 6px; }
   .parcela { font-size: 13px; color: #666; margin: 5px 0 10px; }
   .btn-whatsapp {
     display: block; background: #25D366; color: white; text-align: center;
@@ -226,9 +227,12 @@ function renderizar(produtos) {
     var img = p.imagem_url || '';
     var nome = p.nome;
     var cat = p.categoria || 'Geral';
-    var po = formatarPreco(p.preco_original);
+    var precoMercado = p.preco_venda * 1.5;
+    var economia = precoMercado - p.preco_venda;
+    var pm = formatarPreco(precoMercado);
     var pv = formatarPreco(p.preco_venda);
     var parc = formatarPreco(parseFloat(parcela));
+    var eco = formatarPreco(economia);
 
     return '<div class="card">'
       + (img
@@ -237,8 +241,9 @@ function renderizar(produtos) {
       + '<div class="card-body">'
       + '<span class="categoria-tag">' + cat + '</span>'
       + '<h3>' + nome + '</h3>'
-      + '<div class="preco-original">' + po + '</div>'
+      + '<div class="preco-original">De: ' + pm + '</div>'
       + '<div class="preco-venda">' + pv + '</div>'
+      + '<div class="economia">Voce economiza ' + eco + '</div>'
       + '<div class="parcela">Ou 6x de ' + parc + ' sem juros</div>'
       + '<a class="btn-whatsapp" href="' + link + '" target="_blank">Comprar via WhatsApp</a>'
       + '</div></div>';
