@@ -2,6 +2,7 @@
 """
 Sync automático: Kyte -> Supabase
 Extrai todos os produtos do catálogo e atualiza o banco.
+Envia relatório de alterações via Telegram.
 """
 
 import requests
@@ -10,17 +11,31 @@ import json
 import time
 import os
 from urllib.parse import quote
+from datetime import datetime
 
 # Configurações via variáveis de ambiente (seguro para GitHub Actions)
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 MARGEM_LUCRO = float(os.getenv("MARGEM_LUCRO", "1.30"))
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
 URL_CATALOGO = os.getenv("URL_CATALOGO", "https://catalogoatacadospecialdiadospaiss.catalog.kyte.site/")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
 }
+
+
+def enviar_telegram(mensagem):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {"chat_id": TELEGRAM_CHAT_ID, "text": mensagem, "parse_mode": "HTML"}
+        requests.post(url, json=payload, timeout=15)
+    except Exception as e:
+        print(f"  Erro ao enviar Telegram: {e}")
 
 
 def extrair_produtos():
@@ -56,10 +71,24 @@ def extrair_produtos():
         return None
 
 
+def formatar_preco(valor):
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def sync_supabase(produtos):
     from supabase import create_client
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+    # Busca estado anterior para comparar
+    print("Obtendo estado anterior do catalogo...")
+    anterior = {}
+    try:
+        todos = supabase.table("produtos").select("id,nome,preco_venda,ativo").execute()
+        for reg in todos.data:
+            anterior[reg["id"]] = reg
+    except Exception as e:
+        print(f"  Aviso: nao foi possivel obter estado anterior: {e}")
 
     ids_fornecedor = set()
     produtos_para_sync = []
@@ -91,26 +120,84 @@ def sync_supabase(produtos):
         })
         ids_fornecedor.add(produto_id)
 
-    # Batch upsert (envia tudo de uma vez)
+    # Detecta alteracoes
+    novos = []
+    alterados_preco = []
+    reativados = []
+
+    for p in produtos_para_sync:
+        pid = p["id"]
+        if pid not in anterior:
+            novos.append(p)
+        else:
+            reg_antigo = anterior[pid]
+            if reg_antigo["preco_venda"] != p["preco_venda"]:
+                alterados_preco.append((reg_antigo, p))
+            if not reg_antigo["ativo"]:
+                reativados.append(p)
+
+    # Batch upsert
     print(f"Enviando {len(produtos_para_sync)} produtos para o Supabase...")
     resultado = supabase.table("produtos").upsert(produtos_para_sync, on_conflict="id").execute()
     print(f"Sync concluido: {len(resultado.data)} produtos processados")
 
     # Marcar como inativos os que nao estao mais no catalogo
     print("Verificando produtos removidos do catalogo...")
-    todos_bd = supabase.table("produtos").select("id").eq("ativo", True).execute()
-    desativados = 0
-    for registro in todos_bd.data:
-        if registro["id"] not in ids_fornecedor:
-            supabase.table("produtos").update({"ativo": False}).eq("id", registro["id"]).execute()
-            desativados += 1
+    desativados_ids = []
+    for pid, reg in anterior.items():
+        if reg["ativo"] and pid not in ids_fornecedor:
+            supabase.table("produtos").update({"ativo": False}).eq("id", pid).execute()
+            desativados_ids.append(pid)
 
-    if desativados:
-        print(f"Desativados: {desativados} produtos removidos do catalogo")
+    # Gera relatorio
+    linhas = []
+    linhas.append(f"<b>Relatorio de Sincronizacao - {datetime.now().strftime('%d/%m/%Y %H:%M')}</b>\n")
 
+    if novos:
+        linhas.append(f"<b>Produtos Novos:</b> {len(novos)}")
+        for p in novos[:10]:
+            linhas.append(f"  + {p['nome'][:50]} - {formatar_preco(p['preco_venda'])}")
+        if len(novos) > 10:
+            linhas.append(f"  ... e mais {len(novos)-10} novos")
+        linhas.append("")
 
-def formatar_preco(valor):
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    if alterados_preco:
+        linhas.append(f"<b>Alteracoes de Preco:</b> {len(alterados_preco)}")
+        for antigo, novo in alterados_preco[:10]:
+            dif = novo["preco_venda"] - antigo["preco_venda"]
+            seta = "\U0001f4c8" if dif > 0 else "\U0001f4c9"
+            linhas.append(f"  {seta} {novo['nome'][:50]}: {formatar_preco(antigo['preco_venda'])} -> {formatar_preco(novo['preco_venda'])}")
+        if len(alterados_preco) > 10:
+            linhas.append(f"  ... e mais {len(alterados_preco)-10} alteracoes")
+        linhas.append("")
+
+    if desativados_ids:
+        linhas.append(f"<b>Indisponiveis:</b> {len(desativados_ids)} produtos removidos do catalogo")
+        count = 0
+        for pid in desativados_ids:
+            if count < 10:
+                linhas.append(f"  - {anterior[pid]['nome'][:50]}")
+                count += 1
+        if len(desativados_ids) > 10:
+            linhas.append(f"  ... e mais {len(desativados_ids)-10}")
+        linhas.append("")
+
+    if reativados:
+        linhas.append(f"<b>Reativados:</b> {len(reativados)} produtos voltaram ao catalogo")
+        for p in reativados[:5]:
+            linhas.append(f"  + {p['nome'][:50]}")
+        linhas.append("")
+
+    if not (novos or alterados_preco or desativados_ids or reativados):
+        linhas.append("Nenhuma alteracao detectada no catalogo.")
+    else:
+        linhas.append(f"\nTotal ativo: {len(ids_fornecedor)} produtos")
+
+    relatorio = "\n".join(linhas)
+    print("\n" + relatorio)
+
+    if novos or alterados_preco or desativados_ids or reativados:
+        enviar_telegram(relatorio)
 
 
 def gerar_html(produtos):
@@ -135,7 +222,6 @@ def gerar_html(produtos):
   .card-body h3 { font-size: 14px; color: #333; margin-bottom: 10px; }
   .preco-original { font-size: 12px; color: #999; text-decoration: line-through; }
   .preco-venda { font-size: 22px; color: #e63946; font-weight: bold; }
-  .parcela { font-size: 13px; color: #666; margin: 5px 0; }
   .btn-whatsapp {
     display: block; background: #25D366; color: white; text-align: center;
     padding: 12px; border-radius: 8px; text-decoration: none;
@@ -160,7 +246,6 @@ def gerar_html(produtos):
         preco_original = p.get("preco_original", 0)
         imagem_url = p.get("imagem_url", "")
         categoria = p.get("categoria", "")
-        parcela = round(preco_venda / 6, 2)
         link_whats = f"https://wa.me/5575998078956?text={quote(f'Ola, quero aproveitar a oferta do {nome}!')}"
 
         html += f"""
@@ -171,8 +256,7 @@ def gerar_html(produtos):
     <h3>{nome}</h3>
     <div class="preco-original">{formatar_preco(preco_original)}</div>
     <div class="preco-venda">{formatar_preco(preco_venda)}</div>
-    <div class="parcela">Ou 6x de {formatar_preco(parcela)} sem juros</div>
-    <a class="btn-whatsapp" href="{link_whats}" target="_blank">Comprar via WhatsApp</a>
+    <a class="btn-whatsapp" href="{link_whats}" target="_blank">Consultar via WhatsApp</a>
   </div>
 </div>
 """
