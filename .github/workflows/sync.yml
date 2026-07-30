@@ -25,4 +25,5 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           MARGEM_LUCRO: '1.30'
+          URL_CATALOGO: ${{ secrets.URL_CATALOGO }}
         run: python sync_catalogo.py

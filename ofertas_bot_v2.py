@@ -12,6 +12,7 @@ import sys
 import time
 import random
 from datetime import datetime
+import os
 from urllib.parse import quote
 
 # CONFIGURACOES
@@ -20,7 +21,7 @@ TELEGRAM_CHAT_ID = "-5015587918"
 WHATSAPP_NUMERO = "5575998078956"
 MARGEM_LUCRO = 1.30
 NOME_LOJA = "Ousamais"
-URL_CATALOGO = "https://catalogoatacadospecialdiadospaiss.catalog.kyte.site/"
+URL_CATALOGO = os.getenv("URL_CATALOGO", "https://catalogoatacadospecialdiadospaiss.catalog.kyte.site/")
 QUANTIDADE_OFERTAS = 15
 INTERVALO_MIN = 15
 INTERVALO_MAX = 30

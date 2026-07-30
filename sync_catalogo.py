@@ -16,7 +16,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 MARGEM_LUCRO = float(os.getenv("MARGEM_LUCRO", "1.30"))
 
-URL_CATALOGO = "https://catalogoatacadospecialdiadospaiss.catalog.kyte.site/"
+URL_CATALOGO = os.getenv("URL_CATALOGO", "https://catalogoatacadospecialdiadospaiss.catalog.kyte.site/")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",

@@ -7,6 +7,7 @@
 import requests
 import re
 import json
+import os
 from datetime import datetime
 
 # ═══════════════════════════════════════════════════════════
@@ -17,7 +18,7 @@ TELEGRAM_CHAT_ID = "-5015587918"
 WHATSAPP_NUMERO = "5575998078956"
 MARGEM_LUCRO = 1.30
 NOME_LOJA = "Ousamais"
-URL_CATALOGO = "https://catalogoatacadospecialdiadospaiss.catalog.kyte.site/"
+URL_CATALOGO = os.getenv("URL_CATALOGO", "https://catalogoatacadospecialdiadospaiss.catalog.kyte.site/")
 # ═══════════════════════════════════════════════════════════
 
 
