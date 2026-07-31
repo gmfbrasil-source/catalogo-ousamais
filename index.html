@@ -14,7 +14,7 @@
   .header-logo { max-height: 92px; display: none; filter: drop-shadow(0 3px 8px rgba(0,0,0,.12)); }
   .header-logo.visible { display: block; }
   .header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.5px; white-space: nowrap; }
-  .header .sub { font-size: 13px; color: #1a3f55; margin-top: 2px; font-weight: 500; }
+  .header .sub { font-size: 13px; color: #1a3f55; margin-top: 10px; font-weight: 500; }
   .header .sub strong { color: #f2b622; }
 
   .hamburger {
@@ -227,7 +227,7 @@
     <div class="grid" id="grid"></div>
 
     <div class="footer">
-      Ousamais &copy; 2026 - Precos sujeitos a alteracao sem aviso previo<br>
+      <div id="footerText">Ousamais &copy; 2026 - Precos sujeitos a alteracao sem aviso previo</div>
       <a href="/admin.html" style="color:#999;font-size:11px;text-decoration:none">Admin</a>
     </div>
   </main>
@@ -274,6 +274,15 @@ async function carregarConfig() {
       var bannerEl = document.getElementById('bannerImg');
       bannerEl.src = config.banner_url;
       bannerEl.classList.add('visible');
+    }
+    if (config.texto_subtitulo) {
+      document.getElementById('headerSub').innerHTML = config.texto_subtitulo;
+    }
+    if (config.texto_busca) {
+      document.getElementById('busca').placeholder = config.texto_busca;
+    }
+    if (config.texto_rodape) {
+      document.getElementById('footerText').innerHTML = config.texto_rodape;
     }
   } catch (e) {
     console.warn('Erro ao carregar config:', e);

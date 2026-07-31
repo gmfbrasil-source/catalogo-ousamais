@@ -274,6 +274,15 @@ function renderConfig() {
       + '<input type="url" id="inputBanner" value="' + (configCache.banner_url || '') + '" placeholder="https://i.imgur.com/...jpg">'
       + '<img class="preview' + (configCache.banner_url ? ' visible' : '') + '" id="previewBanner" src="' + (configCache.banner_url || '') + '" onerror="this.classList.remove(\'visible\')">'
 
+      + '<label>Texto do Subtitulo (abaixo da logo)</label>'
+      + '<input type="text" id="inputSubtitulo" value="' + (configCache.texto_subtitulo || '') + '" placeholder="Mais de 1.000 produtos direto da distribuidora para voce">'
+
+      + '<label>Texto de Busca (placeholder)</label>'
+      + '<input type="text" id="inputBusca" value="' + (configCache.texto_busca || '') + '" placeholder="O que procura hoje?">'
+
+      + '<label>Texto do Rodape</label>'
+      + '<input type="text" id="inputRodape" value="' + (configCache.texto_rodape || '') + '" placeholder="Ousamais (c) 2026 - Precos sujeitos a alteracao sem aviso previo">'
+
       + '<div class="config-msg" id="configMsg"></div>'
       + '<button class="btn-salvar-config" id="btnSalvarConfig" onclick="salvarConfigs()">Salvar Configuracoes</button>'
       + '</div>';
@@ -315,7 +324,10 @@ function salvarConfigs() {
 
   Promise.all([
     salvarConfig('logo_url', logoUrl),
-    salvarConfig('banner_url', bannerUrl)
+    salvarConfig('banner_url', bannerUrl),
+    salvarConfig('texto_subtitulo', document.getElementById('inputSubtitulo').value.trim()),
+    salvarConfig('texto_busca', document.getElementById('inputBusca').value.trim()),
+    salvarConfig('texto_rodape', document.getElementById('inputRodape').value.trim())
   ]).then(function() {
     msg.style.color = '#00a86b';
     msg.textContent = 'Configuracoes salvas com sucesso!';
