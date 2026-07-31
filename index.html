@@ -8,15 +8,48 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f2f1ed; color: #333; }
 
-  .header { background: #f2f1ed; color: #0b2b40; padding: 16px 20px 12px; text-align: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #e6e6e6; }
-  .header-inner { display: flex; align-items: center; justify-content: center; gap: 14px; max-width: 1400px; margin: 0 auto; }
-  .header-logo { max-height: 80px; display: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.1)); }
+  .header { background: #f2f1ed; color: #0b2b40; padding: 10px 16px 12px; text-align: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #e6e6e6; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; position: relative; max-width: 1400px; margin: 0 auto; }
+  .header-brand { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 50%; }
+  .header-logo { max-height: 56px; display: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.1)); }
   .header-logo.visible { display: block; }
-  .header h1 { font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
-  .header .sub { font-size: 14px; color: #1a3f55; margin-top: 4px; font-weight: 500; }
+  .header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.5px; white-space: nowrap; }
+  .header .sub { font-size: 13px; color: #1a3f55; margin-top: 2px; font-weight: 500; }
   .header .sub strong { color: #f2b622; }
 
-  .banner-wrap { max-width: 1400px; margin: 0 auto; padding: 16px 20px 0; }
+  .hamburger {
+    width: 38px; height: 38px; border: none; background: white; color: #0b2b40;
+    border-radius: 10px; font-size: 18px; cursor: pointer; flex-shrink: 0;
+    display: none; box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  }
+
+  .header-actions { display: flex; gap: 6px; margin-left: auto; }
+  .icon-btn {
+    position: relative; width: 38px; height: 38px; border: none; background: white; color: #0b2b40;
+    border-radius: 10px; cursor: pointer; font-size: 17px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08); transition: transform .15s, background .2s;
+  }
+  .icon-btn:hover { background: #eee8eb; }
+  .icon-btn:active { transform: scale(.92); }
+  .icon-btn svg { width: 19px; height: 19px; fill: currentColor; }
+  .icon-btn.ativo { background: #0b2b40; color: #f2b622; }
+  .icon-btn .badge {
+    position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px;
+    background: #f2b622; color: #0b2b40; border-radius: 9px; font-size: 10px; font-weight: 700;
+    display: none; align-items: center; justify-content: center; line-height: 1;
+  }
+  .icon-btn .badge.visible { display: flex; }
+  .icon-btn .badge.pulse { animation: pulse .4s; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.6); } 100% { transform: scale(1); } }
+
+  .search-bar { max-width: 1400px; margin: 10px auto 0; }
+  .search-bar input {
+    width: 100%; padding: 11px 16px; border: 2px solid #e6e6e6; border-radius: 10px;
+    font-size: 14px; outline: none; transition: border-color .3s; background: white;
+  }
+  .search-bar input:focus { border-color: #f2b622; }
+
+  .banner-wrap { max-width: 1400px; margin: 0 auto; padding: 14px 20px 0; }
   .banner-wrap img { width: 100%; border-radius: 12px; display: none; max-height: 300px; object-fit: cover; }
   .banner-wrap img.visible { display: block; }
 
@@ -24,7 +57,7 @@
 
   .sidebar {
     width: 240px; min-width: 240px; background: white; border-right: 1px solid #e6e6e6;
-    padding: 20px 0; position: sticky; top: 78px; align-self: flex-start; max-height: calc(100vh - 78px);
+    padding: 20px 0; position: sticky; top: 120px; align-self: flex-start; max-height: calc(100vh - 120px);
     overflow-y: auto; z-index: 50;
   }
   .sidebar-title { padding: 0 16px 12px; font-size: 12px; text-transform: uppercase; color: #999; letter-spacing: 1px; font-weight: 600; }
@@ -39,24 +72,21 @@
 
   .content { flex: 1; padding: 20px; min-width: 0; }
 
-  .search-bar input {
-    width: 100%; padding: 12px 16px; border: 2px solid #e6e6e6; border-radius: 10px;
-    font-size: 15px; outline: none; transition: border-color .3s; background: white;
-  }
-  .search-bar input:focus { border-color: #f2b622; }
-
-  .topo-header { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
-  .topo-header .hamburger {
-    display: none; width: 36px; height: 36px; border: none; background: #0b2b40; color: white;
-    border-radius: 8px; font-size: 18px; cursor: pointer; flex-shrink: 0;
-  }
-  .contador { font-size: 13px; color: #999; margin-left: auto; }
+  .resultado-info { font-size: 13px; color: #888; margin-bottom: 12px; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; align-items: stretch; }
   .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: transform .2s; display: flex; flex-direction: column; }
   .card:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,.1); }
   .card-img { width: 100%; height: 260px; object-fit: cover; background: #f2f1ed; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 13px; }
   .card-img-wrap { position: relative; line-height: 0; }
+  .btn-fav {
+    position: absolute; top: 8px; left: 8px; width: 34px; height: 34px; border: none; border-radius: 50%;
+    background: white; color: #bbb; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,.15); transition: transform .15s, color .2s;
+  }
+  .btn-fav:hover { transform: scale(1.1); color: #e63946; }
+  .btn-fav.ativo { color: #e63946; }
+  .btn-fav svg { width: 18px; height: 18px; fill: currentColor; }
   .tag-desconto {
     position: absolute; top: 8px; right: 8px; background: #f2b622; color: #0b2b40;
     padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700;
@@ -68,14 +98,24 @@
   .preco-original { font-size: 13px; color: #999; text-decoration: line-through; }
   .preco-venda { font-size: 22px; color: #0b2b40; font-weight: bold; margin: 2px 0; }
   .economia { font-size: 12px; color: #f2b622; font-weight: 600; margin: 2px 0 6px; }
+  .card-actions { display: flex; gap: 8px; margin-top: auto; }
   .btn-whatsapp {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1;
     background: #25D366; color: white; text-align: center;
-    padding: 11px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;
-    transition: background .2s; margin-top: auto;
+    padding: 11px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px;
+    transition: background .2s;
   }
   .btn-whatsapp:hover { background: #1da951; }
-  .btn-whatsapp svg { width: 18px; height: 18px; fill: white; flex-shrink: 0; }
+  .btn-whatsapp svg { width: 17px; height: 17px; fill: white; flex-shrink: 0; }
+  .btn-cart {
+    width: 44px; border: none; border-radius: 8px; background: #0b2b40; color: #f2b622; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: background .2s, transform .1s; flex-shrink: 0;
+  }
+  .btn-cart:hover { background: #1a3f55; }
+  .btn-cart:active { transform: scale(.9); }
+  .btn-cart svg { width: 20px; height: 20px; fill: currentColor; }
+
+  .sem-resultados { text-align: center; padding: 60px 20px; color: #999; font-size: 15px; }
 
   .loading { text-align: center; padding: 80px 20px; font-size: 16px; color: #999; }
   .spinner { border: 3px solid #e6e6e6; border-top: 3px solid #f2b622; border-radius: 50%; width: 36px; height: 36px; animation: spin .8s linear infinite; margin: 0 auto 12px; }
@@ -91,33 +131,78 @@
   }
   .btn-topo:hover { opacity: .85; }
 
+  .cart-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 290; }
+  .cart-overlay.ativa { display: block; }
+  .cart-panel {
+    position: fixed; top: 0; right: 0; width: 400px; max-width: 100%; height: 100vh; background: white; z-index: 300;
+    transform: translateX(100%); transition: transform .3s; display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,.15);
+  }
+  .cart-panel.aberto { transform: translateX(0); }
+  .cart-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #e6e6e6; }
+  .cart-header h3 { font-size: 17px; color: #0b2b40; }
+  .cart-header button { width: 32px; height: 32px; border: none; background: #eee8eb; color: #0b2b40; border-radius: 8px; font-size: 16px; cursor: pointer; }
+  .cart-items { flex: 1; overflow-y: auto; padding: 12px 18px; }
+  .cart-vazio { text-align: center; padding: 50px 20px; color: #999; font-size: 14px; line-height: 1.6; }
+  .cart-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .cart-item img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; background: #f2f1ed; flex-shrink: 0; }
+  .cart-item-info { flex: 1; min-width: 0; }
+  .cart-item-nome { font-size: 13px; color: #0b2b40; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cart-item-preco { font-size: 14px; font-weight: 700; color: #0b2b40; margin-top: 4px; }
+  .cart-item-controles { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .cart-item-controles button { width: 28px; height: 28px; border: 1px solid #e6e6e6; background: white; border-radius: 6px; cursor: pointer; font-size: 15px; color: #0b2b40; line-height: 1; }
+  .cart-item-controles span { min-width: 20px; text-align: center; font-size: 14px; font-weight: 600; color: #0b2b40; }
+  .cart-item-controles .btn-remover { border-color: transparent; color: #e63946; background: #fdf0f0; }
+  .cart-footer { padding: 16px 18px; border-top: 1px solid #e6e6e6; }
+  .cart-total { font-size: 18px; font-weight: 800; color: #0b2b40; margin-bottom: 10px; }
+  .btn-pedido { width: 100%; padding: 13px; border: none; border-radius: 10px; background: #25D366; color: white; font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s; }
+  .btn-pedido:hover { background: #1da951; }
+
   @media (max-width: 768px) {
+    .header { padding: 8px 12px 10px; }
+    .header-logo { max-height: 40px; }
+    .header h1 { font-size: 18px; }
+    .header .sub { font-size: 11px; }
+    .hamburger { display: flex; align-items: center; justify-content: center; }
+    .icon-btn { width: 34px; height: 34px; font-size: 15px; }
     .sidebar { display: none; position: fixed; top: 0; left: 0; height: 100vh; max-height: 100vh; z-index: 200; border-radius: 0 16px 16px 0; box-shadow: 4px 0 20px rgba(0,0,0,.15); width: 260px; padding-top: 60px; }
     .sidebar.aberta { display: block; }
     .sidebar-overlay.ativa { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 150; }
-    .topo-header .hamburger { display: block; }
     .layout { flex-direction: column; }
     .content { padding: 12px; }
+    .resultado-info { margin-bottom: 8px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
     .card-img { height: 180px; }
-    .header { padding: 12px 14px 10px; }
-    .header-logo { max-height: 56px; }
-    .header h1 { font-size: 20px; }
-    .header .sub { font-size: 12px; }
+    .preco-venda { font-size: 18px; }
+    .btn-whatsapp { font-size: 11px; padding: 10px 6px; }
+    .btn-whatsapp svg { width: 15px; height: 15px; }
+    .btn-cart { width: 38px; }
+    .btn-cart svg { width: 17px; height: 17px; }
     .banner-wrap { padding: 10px 12px 0; }
     .banner-wrap img { max-height: 180px; }
     .btn-topo { bottom: 16px; right: 16px; width: 40px; height: 40px; font-size: 18px; }
+    .cart-panel { width: 100%; }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-inner">
-    <img class="header-logo" id="headerLogo" alt="Ousamais">
-    <h1 id="headerTitle">Ousamais</h1>
+  <div class="header-top">
+    <button class="hamburger" id="hamburgerBtn" aria-label="Abrir marcas">&#9776;</button>
+    <div class="header-brand">
+      <img class="header-logo" id="headerLogo" alt="Ousamais">
+      <h1 id="headerTitle">Ousamais</h1>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btnVoltar" aria-label="Voltar" title="Voltar"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <button class="icon-btn" id="btnFavs" aria-label="Favoritos" title="Favoritos"><svg viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3z"/></svg><span class="badge" id="favsBadge"></span></button>
+      <button class="icon-btn" id="btnCarrinho" aria-label="Carrinho" title="Carrinho"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="badge" id="cartBadge"></span></button>
+    </div>
   </div>
   <p class="sub" id="headerSub">Mais de <strong>1.000 produtos</strong> direto da distribuidora para voce</p>
+  <div class="search-bar">
+    <input type="text" id="busca" placeholder="O que procura hoje?" oninput="filtrar()">
+  </div>
 </div>
 
 <div class="banner-wrap">
@@ -133,13 +218,7 @@
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="content">
-    <div class="search-bar">
-      <div class="topo-header">
-        <button class="hamburger" id="hamburgerBtn" aria-label="Abrir marcas">&#9776;</button>
-        <div style="flex:1"><input type="text" id="busca" placeholder="Buscar produto..." oninput="filtrar()"></div>
-        <div class="contador" id="contador"></div>
-      </div>
-    </div>
+    <div class="resultado-info" id="resultadoInfo"></div>
 
     <div class="loading" id="loading">
       <div class="spinner"></div>
@@ -158,12 +237,25 @@
 
 <button class="btn-topo" id="btnTopo" aria-label="Voltar ao topo">&#8593;</button>
 
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-panel" id="cartPanel">
+  <div class="cart-header">
+    <h3>Meu Carrinho</h3>
+    <button onclick="fecharCarrinho()">&#10005;</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer" id="cartFooter"></div>
+</aside>
+
 <script>
 const SUPABASE_URL = 'https://qfewcmoyzrezyxasvqny.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmZXdjbW95enJlenl4YXN2cW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0MDQ5NzAsImV4cCI6MjEwMDk4MDk3MH0.vSCoZXe46EZ4fPYjJGve_MxXmARwEElo0XWEA4u7uFI';
 const WHATSAPP_NUMERO = '5575998078956';
 let todosProdutos = [];
 let categoriaAtiva = '';
+let somenteFavoritos = false;
+let favoritos = JSON.parse(localStorage.getItem('ousamais_favs') || '[]');
+let carrinho = JSON.parse(localStorage.getItem('ousamais_cart') || '[]');
 
 async function carregarConfig() {
   try {
@@ -207,7 +299,8 @@ async function carregar() {
     todosProdutos = data1.concat(data2);
     document.getElementById('loading').style.display = 'none';
     renderizarFiltros();
-    renderizar();
+    filtrar();
+    atualizarBadges();
   } catch (err) {
     document.getElementById('loading').innerHTML = 'Erro ao carregar: ' + err.message;
   }
@@ -255,6 +348,14 @@ function abrirSidebar() {
 
 document.getElementById('hamburgerBtn').onclick = abrirSidebar;
 document.getElementById('sidebarOverlay').onclick = fecharSidebar;
+document.getElementById('btnVoltar').onclick = function() { history.back(); };
+document.getElementById('btnFavs').onclick = function() {
+  somenteFavoritos = !somenteFavoritos;
+  document.getElementById('btnFavs').classList.toggle('ativo', somenteFavoritos);
+  filtrar();
+};
+document.getElementById('btnCarrinho').onclick = abrirCarrinho;
+document.getElementById('cartOverlay').onclick = fecharCarrinho;
 
 function filtrar() {
   var busca = document.getElementById('busca').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -262,6 +363,9 @@ function filtrar() {
 
   if (categoriaAtiva) {
     produtos = produtos.filter(function(p) { return p.categoria === categoriaAtiva; });
+  }
+  if (somenteFavoritos) {
+    produtos = produtos.filter(function(p) { return favoritos.indexOf(p.id) !== -1; });
   }
   if (busca) {
     produtos = produtos.filter(function(p) {
@@ -275,10 +379,20 @@ function formatarPreco(valor) {
   return 'R$ ' + valor.toFixed(2).replace('.', ',');
 }
 
+const SVG_CARRINHO = '<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>';
+const SVG_CORACAO = '<svg viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3z"/></svg>';
+
 function renderizar(produtos) {
   var grid = document.getElementById('grid');
   var lista = produtos || todosProdutos;
-  document.getElementById('contador').textContent = lista.length + ' produto' + (lista.length !== 1 ? 's' : '');
+  document.getElementById('resultadoInfo').textContent = lista.length + ' produto' + (lista.length !== 1 ? 's' : '') + (somenteFavoritos ? ' favoritado' + (lista.length !== 1 ? 's' : '') : '');
+
+  if (!lista.length) {
+    grid.innerHTML = '<div class="sem-resultados">' + (somenteFavoritos
+      ? 'Voce ainda nao tem favoritos.<br>Clique no <span style="color:#e63946">coracao</span> dos produtos para salvar.'
+      : 'Nenhum produto encontrado.') + '</div>';
+    return;
+  }
 
   grid.innerHTML = lista.map(function(p) {
     var texto = 'Ola, quero aproveitar a oferta do ' + p.nome + '!';
@@ -289,6 +403,7 @@ function renderizar(produtos) {
     var pv = formatarPreco(p.preco_venda);
     var precoMarca = p.preco_marca ? parseFloat(p.preco_marca) : 0;
     var temDesconto = precoMarca > p.preco_venda;
+    var favAtivo = favoritos.indexOf(p.id) !== -1;
     var tagDesc = '';
     var htmlPrecoAntigo = '';
 
@@ -305,6 +420,7 @@ function renderizar(produtos) {
       + (img
         ? '<img class="card-img" src="' + img + '" alt="' + nome + '" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML=\'<div class=card-img>Sem imagem</div>\'">'
         : '<div class="card-img">Sem imagem</div>')
+      + '<button class="btn-fav' + (favAtivo ? ' ativo' : '') + '" data-id="' + p.id + '" onclick="toggleFavorito(\'' + p.id + '\')" title="Favoritar">' + SVG_CORACAO + '</button>'
       + tagDesc
       + '</div>'
       + '<div class="card-body">'
@@ -312,9 +428,138 @@ function renderizar(produtos) {
       + '<h3>' + nome + '</h3>'
       + htmlPrecoAntigo
       + '<div class="preco-venda">' + pv + '</div>'
+      + '<div class="card-actions">'
       + '<a class="btn-whatsapp" href="' + link + '" target="_blank"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Falar com Consultor</a>'
+      + '<button class="btn-cart" onclick="adicionarAoCarrinho(\'' + p.id + '\', this)" title="Adicionar ao carrinho">' + SVG_CARRINHO + '</button>'
+      + '</div>'
       + '</div></div>';
   }).join('');
+}
+
+function salvarFavoritos() {
+  localStorage.setItem('ousamais_favs', JSON.stringify(favoritos));
+  atualizarBadges();
+}
+
+function toggleFavorito(id) {
+  var idx = favoritos.indexOf(id);
+  if (idx >= 0) favoritos.splice(idx, 1); else favoritos.push(id);
+  salvarFavoritos();
+  var btn = document.querySelector('.btn-fav[data-id="' + id + '"]');
+  if (btn) btn.classList.toggle('ativo', favoritos.indexOf(id) !== -1);
+  if (somenteFavoritos) filtrar();
+}
+
+function salvarCarrinho() {
+  localStorage.setItem('ousamais_cart', JSON.stringify(carrinho));
+  atualizarBadges();
+}
+
+function totalCarrinho() {
+  return carrinho.reduce(function(s, i) { return s + i.qtd; }, 0);
+}
+
+function atualizarBadges() {
+  var favsBadge = document.getElementById('favsBadge');
+  favsBadge.textContent = favoritos.length;
+  favsBadge.classList.toggle('visible', favoritos.length > 0);
+
+  var cartBadge = document.getElementById('cartBadge');
+  var total = totalCarrinho();
+  cartBadge.textContent = total;
+  cartBadge.classList.toggle('visible', total > 0);
+}
+
+function adicionarAoCarrinho(id, btn) {
+  var produto = todosProdutos.find(function(p) { return p.id === id; });
+  if (!produto) return;
+  var item = carrinho.find(function(i) { return i.id === id; });
+  if (item) {
+    item.qtd += 1;
+  } else {
+    carrinho.push({ id: id, nome: produto.nome, preco: produto.preco_venda, imagem: produto.imagem_url || '', qtd: 1 });
+  }
+  salvarCarrinho();
+
+  var badge = document.getElementById('cartBadge');
+  badge.classList.add('pulse');
+  setTimeout(function() { badge.classList.remove('pulse'); }, 500);
+
+  if (btn) {
+    var original = btn.innerHTML;
+    btn.innerHTML = '&#10003;';
+    btn.style.background = '#25D366';
+    btn.style.color = 'white';
+    setTimeout(function() {
+      btn.innerHTML = original;
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 700);
+  }
+}
+
+function abrirCarrinho() {
+  renderizarCarrinho();
+  document.getElementById('cartPanel').classList.add('aberto');
+  document.getElementById('cartOverlay').classList.add('ativa');
+}
+
+function fecharCarrinho() {
+  document.getElementById('cartPanel').classList.remove('aberto');
+  document.getElementById('cartOverlay').classList.remove('ativa');
+}
+
+function mudarQtd(id, delta) {
+  var item = carrinho.find(function(i) { return i.id === id; });
+  if (!item) return;
+  item.qtd += delta;
+  if (item.qtd <= 0) {
+    carrinho = carrinho.filter(function(i) { return i.id !== id; });
+  }
+  salvarCarrinho();
+  renderizarCarrinho();
+}
+
+function renderizarCarrinho() {
+  var panel = document.getElementById('cartItems');
+  var footer = document.getElementById('cartFooter');
+
+  if (!carrinho.length) {
+    panel.innerHTML = '<div class="cart-vazio">Seu carrinho esta vazio.<br>Toque no botao <b>carrinho</b> de qualquer produto para adicionar.</div>';
+    footer.innerHTML = '';
+    return;
+  }
+
+  panel.innerHTML = carrinho.map(function(item) {
+    var subtotal = item.preco * item.qtd;
+    return '<div class="cart-item">'
+      + (item.imagem ? '<img src="' + item.imagem + '" onerror="this.style.display=\'none\'">' : '')
+      + '<div class="cart-item-info">'
+      + '<div class="cart-item-nome">' + item.nome + '</div>'
+      + '<div class="cart-item-preco">' + formatarPreco(subtotal) + '</div>'
+      + '</div>'
+      + '<div class="cart-item-controles">'
+      + '<button onclick="mudarQtd(\'' + item.id + '\', -1)">-</button>'
+      + '<span>' + item.qtd + '</span>'
+      + '<button onclick="mudarQtd(\'' + item.id + '\', 1)">+</button>'
+      + '<button class="btn-remover" onclick="mudarQtd(\'' + item.id + '\', -999)">&#10005;</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  var total = carrinho.reduce(function(s, i) { return s + i.preco * i.qtd; }, 0);
+  footer.innerHTML = '<div class="cart-total">Total: ' + formatarPreco(total) + '</div>'
+    + '<button class="btn-pedido" onclick="enviarPedido()">Enviar Pedido no WhatsApp</button>';
+}
+
+function enviarPedido() {
+  if (!carrinho.length) return;
+  var linhas = carrinho.map(function(item, i) {
+    return (i + 1) + '. ' + item.nome + ' - ' + formatarPreco(item.preco) + (item.qtd > 1 ? '  x' + item.qtd : '');
+  });
+  var total = carrinho.reduce(function(s, i) { return s + i.preco * i.qtd; }, 0);
+  var texto = 'Ola! Quero fazer um pedido:\n\n' + linhas.join('\n') + '\n\nTotal: ' + formatarPreco(total);
+  window.open('https://wa.me/' + WHATSAPP_NUMERO + '?text=' + encodeURIComponent(texto), '_blank');
 }
 
 var btnTopo = document.getElementById('btnTopo');
