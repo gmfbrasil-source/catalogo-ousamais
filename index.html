@@ -10,8 +10,8 @@
 
   .header { background: #f2f1ed; color: #0b2b40; padding: 10px 16px 12px; text-align: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #e6e6e6; }
   .header-top { display: flex; align-items: center; justify-content: space-between; position: relative; max-width: 1400px; margin: 0 auto; }
-  .header-brand { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 50%; }
-  .header-logo { max-height: 56px; display: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.1)); }
+  .header-brand { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 60%; }
+  .header-logo { max-height: 92px; display: none; filter: drop-shadow(0 3px 8px rgba(0,0,0,.12)); }
   .header-logo.visible { display: block; }
   .header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.5px; white-space: nowrap; }
   .header .sub { font-size: 13px; color: #1a3f55; margin-top: 2px; font-weight: 500; }
@@ -159,7 +159,7 @@
 
   @media (max-width: 768px) {
     .header { padding: 8px 12px 10px; }
-    .header-logo { max-height: 40px; }
+    .header-logo { max-height: 64px; }
     .header h1 { font-size: 18px; }
     .header .sub { font-size: 11px; }
     .hamburger { display: flex; align-items: center; justify-content: center; }
@@ -194,7 +194,6 @@
       <h1 id="headerTitle">Ousamais</h1>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="btnVoltar" aria-label="Voltar" title="Voltar"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
       <button class="icon-btn" id="btnFavs" aria-label="Favoritos" title="Favoritos"><svg viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3z"/></svg><span class="badge" id="favsBadge"></span></button>
       <button class="icon-btn" id="btnCarrinho" aria-label="Carrinho" title="Carrinho"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="badge" id="cartBadge"></span></button>
     </div>
@@ -348,7 +347,6 @@ function abrirSidebar() {
 
 document.getElementById('hamburgerBtn').onclick = abrirSidebar;
 document.getElementById('sidebarOverlay').onclick = fecharSidebar;
-document.getElementById('btnVoltar').onclick = function() { history.back(); };
 document.getElementById('btnFavs').onclick = function() {
   somenteFavoritos = !somenteFavoritos;
   document.getElementById('btnFavs').classList.toggle('ativo', somenteFavoritos);
