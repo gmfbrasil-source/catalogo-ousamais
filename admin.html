@@ -27,6 +27,7 @@
   tr:hover td { background: #fafafa; }
   .nome-cell { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .preco-input { width: 90px; padding: 6px 8px; border: 2px solid #ddd; border-radius: 6px; font-size: 13px; text-align: center; outline: none; }
+  .preco-compra { color: #999; font-size: 12px; white-space: nowrap; }
   .preco-input:focus { border-color: #1a1a2e; }
   .preco-input.tem-marca { border-color: #00a86b; background: #f0fff4; }
   .btn-salvar { padding: 5px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; background: #1a1a2e; color: white; }
@@ -144,7 +145,7 @@ function buscar() {
   if (busca) {
     filtros += '&or=(nome.ilike.*' + encodeURIComponent(busca) + '*,categoria.ilike.*' + encodeURIComponent(busca) + '*)';
   }
-  api('produtos?select=id,nome,categoria,preco_venda,preco_marca,margem&' + filtros).then(function(r) { return r.json(); }).then(function(d) {
+  api('produtos?select=id,nome,categoria,preco_original,preco_venda,preco_marca,margem&' + filtros).then(function(r) { return r.json(); }).then(function(d) {
     produtos = d;
     render();
   }).catch(function(e) { app.innerHTML = '<div class="erro">Erro: ' + e.message + '</div>'; });
@@ -230,7 +231,7 @@ function render() {
     + '</div>'
     + '<div class="stats">' + total + ' produtos ativos' + (filtroMarca ? ' | Filtrando: ' + (filtroMarca === 'com' ? 'Com preco marca' : 'Sem preco marca') : '') + '</div>'
     + '<div style="overflow-x:auto"><table>'
-    + '<thead><tr><th>Produto</th><th>Categoria</th><th>Nosso Preco</th><th>Preco Marca</th><th>Margem %</th><th></th></tr></thead>'
+    + '<thead><tr><th>Produto</th><th>Categoria</th><th>Nosso Preco</th><th>Preco Compra</th><th>Preco Marca</th><th>Margem %</th><th></th></tr></thead>'
     + '<tbody>'
     + produtos.map(function(p) {
         var pm = p.preco_marca;
@@ -241,6 +242,7 @@ function render() {
           + '<td class="nome-cell" title="' + p.nome.replace(/"/g, '&quot;') + '">' + p.nome + '</td>'
           + '<td>' + (p.categoria || '-') + '</td>'
           + '<td id="preco_' + p.id + '">' + formatarPreco(p.preco_venda) + '</td>'
+          + '<td class="preco-compra">' + formatarPreco(p.preco_original) + '</td>'
           + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
           + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
           + '</td>'
