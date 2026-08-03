@@ -75,6 +75,20 @@ def formatar_preco(valor):
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def carregar_url_catalogo(supabase):
+    """Carrega a URL do catalogo da config do Supabase (editavel pelo admin)."""
+    try:
+        rows = supabase.table("config").select("chave,valor").eq("chave", "url_catalogo").execute()
+        for row in rows.data:
+            if row["valor"]:
+                url = row["valor"].strip()
+                if url:
+                    return url
+    except Exception as e:
+        print(f"  Aviso: nao foi possivel carregar url_catalogo da config: {e}")
+    return URL_CATALOGO
+
+
 def carregar_config_margens(supabase):
     """Carrega margens configuradas no banco (global + por marca)."""
     global_margem = round((MARGEM_LUCRO - 1) * 100, 2)
@@ -321,6 +335,17 @@ def main():
     print("=" * 60)
 
     if SUPABASE_URL and SUPABASE_KEY:
+        from supabase import create_client
+        try:
+            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+            url = carregar_url_catalogo(supabase)
+            if url:
+                global URL_CATALOGO
+                URL_CATALOGO = url
+                print(f"  URL do catalogo (config): {URL_CATALOGO}")
+        except Exception as e:
+            print(f"  Aviso: nao foi possivel carregar URL do catalogo: {e}")
+
         produtos = extrair_produtos()
         if produtos:
             try:

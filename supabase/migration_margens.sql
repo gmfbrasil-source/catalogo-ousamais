@@ -7,7 +7,8 @@ ALTER TABLE produtos ADD COLUMN IF NOT EXISTS margem DECIMAL(5,2);
 -- 2. Chaves de configuracao
 INSERT INTO config (chave, valor) VALUES
   ('margem_global', '30'),
-  ('margens_marcas', '{}')
+  ('margens_marcas', '{}'),
+  ('url_catalogo', '')
 ON CONFLICT (chave) DO NOTHING;
 
 -- 3. Funcao para recalcular todos os precos conforme as margens configuradas
