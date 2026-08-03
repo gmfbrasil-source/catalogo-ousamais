@@ -145,6 +145,8 @@ def sync_supabase(produtos):
 
         nome = p.get("name", "Sem nome")
         preco_original = p.get("salePromotionalPrice") or p.get("salePrice") or 0
+        if preco_original <= 0:
+            continue
         categoria = (p.get("categoryName", "") or "").strip()
 
         margem_produto = anterior.get(produto_id, {}).get("margem")
