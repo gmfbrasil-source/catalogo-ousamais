@@ -169,11 +169,27 @@ function salvar(id) {
 
   var data = { preco_marca: num };
   if (margemNum != null) { data.margem = margemNum; } else { data.margem = null; }
+
+  var prod = produtos.filter(function(x) { return String(x.id) === String(id); })[0];
+  if (prod && parseFloat(prod.preco_original) > 0) {
+    var meNova = margemEfetiva({ margem: margemNum, categoria: prod.categoria || '' });
+    data.preco_venda = Math.round(parseFloat(prod.preco_original) * (1 + meNova / 100) * 100) / 100;
+  }
+
   api('produtos?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(data), headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' } })
     .then(function(r) {
       if (!r.ok) throw new Error(r.status);
       var ok = document.getElementById('ok_' + id);
-      if (num) { input.className = 'preco-input tem-marca'; ok.textContent = 'Salvo!'; } else { input.className = 'preco-input'; ok.textContent = 'Removido!'; }
+      if (prod) {
+        prod.margem = margemNum;
+        if (data.preco_venda) prod.preco_venda = data.preco_venda;
+        var cell = document.getElementById('preco_' + id);
+        if (cell && data.preco_venda) cell.textContent = formatarPreco(data.preco_venda);
+      }
+      var msg = 'Salvo!';
+      if (!num && !margemVal) msg = 'Removido!';
+      if (num) { input.className = 'preco-input tem-marca'; } else { input.className = 'preco-input'; }
+      ok.textContent = msg;
       btn.textContent = 'Salvar';
       btn.className = 'btn-salvar';
       btn.disabled = false;
@@ -224,7 +240,7 @@ function render() {
         return '<tr>'
           + '<td class="nome-cell">' + p.nome + '</td>'
           + '<td>' + (p.categoria || '-') + '</td>'
-          + '<td>' + formatarPreco(p.preco_venda) + '</td>'
+          + '<td id="preco_' + p.id + '">' + formatarPreco(p.preco_venda) + '</td>'
           + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
           + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
           + '</td>'
