@@ -199,20 +199,6 @@ function margemEfetiva(p) {
   return margemGlobal;
 }
 
-function atualizarBadgeMargem(id) {
-  var inp = document.getElementById('mg_' + id);
-  var bdg = document.getElementById('mgb_' + id);
-  if (!inp || !bdg) return;
-  var val = inp.value.replace(',', '.').trim();
-  var num = val ? parseFloat(val) : null;
-  if (num != null && !isNaN(num)) {
-    bdg.textContent = num + '%';
-  } else {
-    var prod = produtos.filter(function(x) { return String(x.id) === String(id); })[0];
-    bdg.textContent = prod ? margemEfetiva(prod) + '%' : 'auto';
-  }
-}
-
 function render() {
   if (!produtos) return;
 
@@ -242,8 +228,7 @@ function render() {
           + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
           + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
           + '</td>'
-          + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="' + txtMe + '" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\';atualizarBadgeMargem(\'' + p.id + '\')">'
-          + ' <span class="badge" id="mgb_' + p.id + '">' + (p.margem != null ? parseFloat(p.margem) + '%' : txtMe + '%') + '</span></td>'
+          + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="' + txtMe + '" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'"></td>'
           + '<td><button class="btn-salvar" id="btn_' + p.id + '" onclick="salvar(\'' + p.id + '\')">Salvar</button> <span class="ok-msg" id="ok_' + p.id + '"></span></td>'
           + '</tr>';
       }).join('')
