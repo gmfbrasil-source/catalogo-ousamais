@@ -121,11 +121,20 @@ def sync_supabase(produtos):
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+    # Verifica se as colunas de estoque/disponibilidade existem no banco
+    disponibilidade = False
+    try:
+        supabase.table("produtos").select("id,estoque,disponivel").limit(1).execute()
+        disponibilidade = True
+    except Exception:
+        print("  Aviso: colunas estoque/disponivel nao encontradas. Rode a migration disponibilidade.sql no Supabase.")
+
     # Busca estado anterior para comparar
     print("Obtendo estado anterior do catalogo...")
     anterior = {}
     try:
-        todos = supabase.table("produtos").select("id,nome,preco_venda,ativo,margem").execute()
+        cols_ant = "id,nome,preco_venda,ativo,margem" + (",disponivel" if disponibilidade else "")
+        todos = supabase.table("produtos").select(cols_ant).execute()
         for reg in todos.data:
             anterior[reg["id"]] = reg
     except Exception as e:
@@ -145,9 +154,19 @@ def sync_supabase(produtos):
 
         nome = p.get("name", "Sem nome")
         preco_original = p.get("salePromotionalPrice") or p.get("salePrice") or 0
-        if preco_original <= 0:
-            continue
         categoria = (p.get("categoryName", "") or "").strip()
+
+        estoque = 0
+        disponivel_flag = True
+        if disponibilidade:
+            estoque_obj = p.get("stock") or {}
+            try:
+                estoque = int(estoque_obj.get("current") or 0)
+            except (TypeError, ValueError):
+                estoque = 0
+            disponivel_flag = preco_original > 0 and estoque > 0
+        elif preco_original <= 0:
+            continue
 
         margem_produto = anterior.get(produto_id, {}).get("margem")
         margem_atual = margem_efetiva(margem_produto, categoria, margens_marcas, global_margem)
@@ -165,7 +184,7 @@ def sync_supabase(produtos):
         elif imagem.startswith("/"):
             imagem = "https://firebasestorage.googleapis.com/v0/b/kyte-7c484.appspot.com/o/" + imagem.lstrip("/")
 
-        produtos_para_sync.append({
+        item = {
             "id": produto_id,
             "nome": nome,
             "preco_original": preco_original,
@@ -174,13 +193,18 @@ def sync_supabase(produtos):
             "categoria": categoria,
             "imagem_url": imagem,
             "ativo": True,
-        })
+        }
+        if disponibilidade:
+            item["estoque"] = estoque
+            item["disponivel"] = disponivel_flag
+        produtos_para_sync.append(item)
         ids_fornecedor.add(produto_id)
 
     # Detecta alteracoes
     novos = []
     alterados_preco = []
     reativados = []
+    ficaram_indisponiveis = []
 
     for p in produtos_para_sync:
         pid = p["id"]
@@ -192,19 +216,13 @@ def sync_supabase(produtos):
                 alterados_preco.append((reg_antigo, p))
             if not reg_antigo["ativo"]:
                 reativados.append(p)
+            if disponibilidade and reg_antigo.get("disponivel", True) and not p.get("disponivel", True):
+                ficaram_indisponiveis.append(p)
 
     # Batch upsert
     print(f"Enviando {len(produtos_para_sync)} produtos para o Supabase...")
     resultado = supabase.table("produtos").upsert(produtos_para_sync, on_conflict="id").execute()
     print(f"Sync concluido: {len(resultado.data)} produtos processados")
-
-    # Marcar como inativos os que nao estao mais no catalogo
-    print("Verificando produtos removidos do catalogo...")
-    desativados_ids = []
-    for pid, reg in anterior.items():
-        if reg["ativo"] and pid not in ids_fornecedor:
-            supabase.table("produtos").update({"ativo": False}).eq("id", pid).execute()
-            desativados_ids.append(pid)
 
     # Gera relatorio
     linhas = []
@@ -228,15 +246,12 @@ def sync_supabase(produtos):
             linhas.append(f"  ... e mais {len(alterados_preco)-10} alteracoes")
         linhas.append("")
 
-    if desativados_ids:
-        linhas.append(f"<b>Indisponiveis:</b> {len(desativados_ids)} produtos removidos do catalogo")
-        count = 0
-        for pid in desativados_ids:
-            if count < 10:
-                linhas.append(f"  - {anterior[pid]['nome'][:50]}")
-                count += 1
-        if len(desativados_ids) > 10:
-            linhas.append(f"  ... e mais {len(desativados_ids)-10}")
+    if ficaram_indisponiveis:
+        linhas.append(f"<b>Indisponiveis:</b> {len(ficaram_indisponiveis)} produtos sem estoque/preco")
+        for p in ficaram_indisponiveis[:10]:
+            linhas.append(f"  - {p['nome'][:50]}")
+        if len(ficaram_indisponiveis) > 10:
+            linhas.append(f"  ... e mais {len(ficaram_indisponiveis)-10}")
         linhas.append("")
 
     if reativados:
@@ -245,15 +260,15 @@ def sync_supabase(produtos):
             linhas.append(f"  + {p['nome'][:50]}")
         linhas.append("")
 
-    if not (novos or alterados_preco or desativados_ids or reativados):
+    if not (novos or alterados_preco or ficaram_indisponiveis or reativados):
         linhas.append("Nenhuma alteracao detectada no catalogo.")
     else:
-        linhas.append(f"\nTotal ativo: {len(ids_fornecedor)} produtos")
+        linhas.append(f"\nTotal no catalogo: {len(ids_fornecedor)} produtos")
 
     relatorio = "\n".join(linhas)
     print("\n" + relatorio)
 
-    if novos or alterados_preco or desativados_ids or reativados:
+    if novos or alterados_preco or ficaram_indisponiveis or reativados:
         enviar_telegram(relatorio)
 
 
