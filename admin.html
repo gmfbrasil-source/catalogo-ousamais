@@ -139,7 +139,7 @@ function buscar() {
     filtros += '&preco_marca=is.' + (filtroMarca === 'com' ? 'not.null' : 'null');
   }
   if (busca) {
-    filtros += '&nome=like.*' + encodeURIComponent(busca) + '*';
+    filtros += '&or=(nome.ilike.*' + encodeURIComponent(busca) + '*,categoria.ilike.*' + encodeURIComponent(busca) + '*)';
   }
   api('produtos?select=id,nome,categoria,preco_venda,preco_marca,margem&' + filtros).then(function(r) { return r.json(); }).then(function(d) {
     produtos = d;
