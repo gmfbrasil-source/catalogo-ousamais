@@ -133,7 +133,7 @@ def sync_supabase(produtos):
     print("Obtendo estado anterior do catalogo...")
     anterior = {}
     try:
-        cols_ant = "id,nome,preco_venda,ativo,margem" + (",disponivel" if disponibilidade else "")
+        cols_ant = "id,nome,preco_venda,ativo,margem,preco_marca" + (",disponivel" if disponibilidade else "")
         todos = supabase.table("produtos").select(cols_ant).execute()
         for reg in todos.data:
             anterior[reg["id"]] = reg
@@ -177,6 +177,11 @@ def sync_supabase(produtos):
             preco_marca = round(float(preco_marca), 2)
             if preco_marca <= preco_venda:
                 preco_marca = None
+
+        # Preserva preco de marca inserido manualmente no admin quando o
+        # feed nao fornecer um preco de marca valido
+        if not preco_marca:
+            preco_marca = anterior.get(produto_id, {}).get("preco_marca")
         imagem = p.get("image", "")
 
         if imagem.startswith("//"):
