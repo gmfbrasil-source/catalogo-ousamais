@@ -75,6 +75,32 @@ def formatar_preco(valor):
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def carregar_config_margens(supabase):
+    """Carrega margens configuradas no banco (global + por marca)."""
+    global_margem = round((MARGEM_LUCRO - 1) * 100, 2)
+    margens_marcas = {}
+    try:
+        config_rows = supabase.table("config").select("chave,valor").execute()
+        for row in config_rows.data:
+            if row["chave"] == "margem_global" and row["valor"]:
+                global_margem = float(row["valor"])
+            if row["chave"] == "margens_marcas" and row["valor"]:
+                margens_marcas = json.loads(row["valor"])
+    except Exception as e:
+        print(f"  Aviso: nao foi possivel carregar margens da config: {e}")
+    return global_margem, margens_marcas
+
+
+def margem_efetiva(margem_produto, categoria, margens_marcas, global_margem):
+    """Prioridade: margem do produto > margem da marca > margem global."""
+    if margem_produto is not None:
+        return float(margem_produto)
+    marca_m = margens_marcas.get(categoria) if margens_marcas else None
+    if marca_m:
+        return float(marca_m)
+    return float(global_margem)
+
+
 def sync_supabase(produtos):
     from supabase import create_client
 
@@ -84,11 +110,15 @@ def sync_supabase(produtos):
     print("Obtendo estado anterior do catalogo...")
     anterior = {}
     try:
-        todos = supabase.table("produtos").select("id,nome,preco_venda,ativo").execute()
+        todos = supabase.table("produtos").select("id,nome,preco_venda,ativo,margem").execute()
         for reg in todos.data:
             anterior[reg["id"]] = reg
     except Exception as e:
         print(f"  Aviso: nao foi possivel obter estado anterior: {e}")
+
+    # Carrega margens configuradas
+    global_margem, margens_marcas = carregar_config_margens(supabase)
+    print(f"  Margem global: {global_margem}% | Marcas com margem propria: {len(margens_marcas)}")
 
     ids_fornecedor = set()
     produtos_para_sync = []
@@ -100,14 +130,17 @@ def sync_supabase(produtos):
 
         nome = p.get("name", "Sem nome")
         preco_original = p.get("salePromotionalPrice") or p.get("salePrice") or 0
-        preco_venda = round(preco_original * MARGEM_LUCRO, 2)
+        categoria = p.get("categoryName", "")
+
+        margem_produto = anterior.get(produto_id, {}).get("margem")
+        margem_atual = margem_efetiva(margem_produto, categoria, margens_marcas, global_margem)
+        preco_venda = round(preco_original * (1 + margem_atual / 100), 2)
         preco_marca = (p.get("price") or p.get("fullPrice") or p.get("listPrice")
                        or p.get("originalPrice") or p.get("msrpPrice") or p.get("retailPrice"))
         if preco_marca:
             preco_marca = round(float(preco_marca), 2)
             if preco_marca <= preco_venda:
                 preco_marca = None
-        categoria = p.get("categoryName", "")
         imagem = p.get("image", "")
 
         if imagem.startswith("//"):

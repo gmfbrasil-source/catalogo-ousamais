@@ -141,7 +141,7 @@ function buscar() {
   if (busca) {
     filtros += '&nome=like.*' + encodeURIComponent(busca) + '*';
   }
-  api('produtos?select=id,nome,categoria,preco_venda,preco_marca&' + filtros).then(function(r) { return r.json(); }).then(function(d) {
+  api('produtos?select=id,nome,categoria,preco_venda,preco_marca,margem&' + filtros).then(function(r) { return r.json(); }).then(function(d) {
     produtos = d;
     render();
   }).catch(function(e) { app.innerHTML = '<div class="erro">Erro: ' + e.message + '</div>'; });
@@ -153,12 +153,19 @@ function salvar(id) {
   var val = input.value.replace(/\./g, '').replace(',', '.').trim();
   var num = val ? parseFloat(val) : null;
   if (val && (isNaN(num) || num <= 0)) { alert('Valor invalido'); return; }
+
+  var inputMargem = document.getElementById('mg_' + id);
+  var margemVal = inputMargem ? inputMargem.value.replace(',', '.').trim() : '';
+  var margemNum = margemVal ? parseFloat(margemVal) : null;
+  if (margemVal && (isNaN(margemNum) || margemNum < 0)) { alert('Margem invalida'); return; }
+
   var btn = document.getElementById('btn_' + id);
   btn.disabled = true;
   btn.textContent = 'Salvando...';
   btn.className = 'btn-salvar btn-salvando';
 
-  var data = num ? { preco_marca: num } : { preco_marca: null };
+  var data = { preco_marca: num };
+  if (margemNum != null) { data.margem = margemNum; } else { data.margem = null; }
   api('produtos?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(data), headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' } })
     .then(function(r) {
       if (!r.ok) throw new Error(r.status);
@@ -197,7 +204,7 @@ function render() {
     + '</div>'
     + '<div class="stats">' + total + ' produtos ativos' + (filtroMarca ? ' | Filtrando: ' + (filtroMarca === 'com' ? 'Com preco marca' : 'Sem preco marca') : '') + '</div>'
     + '<div style="overflow-x:auto"><table>'
-    + '<thead><tr><th>Produto</th><th>Categoria</th><th>Nosso Preco</th><th>Preco Marca</th><th></th></tr></thead>'
+    + '<thead><tr><th>Produto</th><th>Categoria</th><th>Nosso Preco</th><th>Preco Marca</th><th>Margem %</th><th></th></tr></thead>'
     + '<tbody>'
     + produtos.map(function(p) {
         var pm = p.preco_marca;
@@ -209,6 +216,7 @@ function render() {
           + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
           + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
           + '</td>'
+          + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="auto" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'"></td>'
           + '<td><button class="btn-salvar" id="btn_' + p.id + '" onclick="salvar(\'' + p.id + '\')">Salvar</button> <span class="ok-msg" id="ok_' + p.id + '"></span></td>'
           + '</tr>';
       }).join('')
@@ -259,7 +267,7 @@ function salvarConfig(chave, valor) {
 
 function renderConfig() {
   var sqlLink = 'https://supabase.com/dashboard/project/qfewcmoyzrezyxasvqny/sql/new';
-  var sqlCode = encodeURIComponent('CREATE TABLE IF NOT EXISTS config (chave TEXT PRIMARY KEY, valor TEXT);\nINSERT INTO config (chave, valor) VALUES\n  (\'logo_url\', \'\'),\n  (\'banner_url\', \'\')\nON CONFLICT (chave) DO NOTHING;');
+  var sqlCode = encodeURIComponent('CREATE TABLE IF NOT EXISTS config (chave TEXT PRIMARY KEY, valor TEXT);\nALTER TABLE config DISABLE ROW LEVEL SECURITY;\nINSERT INTO config (chave, valor) VALUES\n  (\'logo_url\', \'\'),\n  (\'banner_url\', \'\'),\n  (\'texto_subtitulo\', \'\'),\n  (\'texto_busca\', \'\'),\n  (\'texto_rodape\', \'\'),\n  (\'margem_global\', \'30\'),\n  (\'margens_marcas\', \'{}\')\nON CONFLICT (chave) DO NOTHING;');
 
   carregarConfig().then(function() {
     appConfig.innerHTML = '<div class="config-box">'
@@ -283,12 +291,22 @@ function renderConfig() {
       + '<label>Texto do Rodape</label>'
       + '<input type="text" id="inputRodape" value="' + (configCache.texto_rodape || '') + '" placeholder="Ousamais (c) 2026 - Precos sujeitos a alteracao sem aviso previo">'
 
+      + '<label>Margem Padrao (%)</label>'
+      + '<input type="number" id="inputMargemGlobal" value="' + (configCache.margem_global || '30') + '" step="0.5" min="0">'
+      + '<p style="font-size:12px;color:#888;margin-top:4px">Porcentagem adicionada sobre o preco da distribuidora. Aplicada a todos os produtos que nao tenham margem propria (por marca ou por produto).</p>'
+
+      + '<label>Margens por Marca (%)</label>'
+      + '<div id="margensMarcasBox" style="max-height:280px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:10px;background:#fafafa"></div>'
+      + '<p style="font-size:12px;color:#888;margin-top:4px">Deixe em branco para usar a margem padrao. A margem por produto (aba Produtos) tem prioridade sobre a marca.</p>'
+
       + '<div class="config-msg" id="configMsg"></div>'
       + '<button class="btn-salvar-config" id="btnSalvarConfig" onclick="salvarConfigs()">Salvar Configuracoes</button>'
+      + ' <button class="btn-salvar-config" id="btnRecalcular" onclick="recalcularPrecos()">Recalcular Precos</button>'
       + '</div>';
 
     document.getElementById('inputLogo').oninput = function() { previewImagem('inputLogo', 'previewLogo'); };
     document.getElementById('inputBanner').oninput = function() { previewImagem('inputBanner', 'previewBanner'); };
+    carregarMarcas();
   }).catch(function(e) {
     appConfig.innerHTML = '<div class="config-box" style="text-align:center;padding:40px">'
       + '<h2 style="color:#0b2b40;margin-bottom:12px">Primeiro acesso</h2>'
@@ -319,18 +337,26 @@ function salvarConfigs() {
   msg.style.color = '#888';
   msg.textContent = 'Salvando...';
 
-  var logoUrl = document.getElementById('inputLogo').value.trim();
-  var bannerUrl = document.getElementById('inputBanner').value.trim();
+  var margensMarcas = {};
+  document.querySelectorAll('.margem-marca').forEach(function(input) {
+    var v = input.value.replace(',', '.').trim();
+    if (v) {
+      var num = parseFloat(v);
+      if (!isNaN(num)) margensMarcas[input.getAttribute('data-marca')] = num;
+    }
+  });
 
   Promise.all([
-    salvarConfig('logo_url', logoUrl),
-    salvarConfig('banner_url', bannerUrl),
+    salvarConfig('logo_url', document.getElementById('inputLogo').value.trim()),
+    salvarConfig('banner_url', document.getElementById('inputBanner').value.trim()),
     salvarConfig('texto_subtitulo', document.getElementById('inputSubtitulo').value.trim()),
     salvarConfig('texto_busca', document.getElementById('inputBusca').value.trim()),
-    salvarConfig('texto_rodape', document.getElementById('inputRodape').value.trim())
+    salvarConfig('texto_rodape', document.getElementById('inputRodape').value.trim()),
+    salvarConfig('margem_global', document.getElementById('inputMargemGlobal').value.trim() || '30'),
+    salvarConfig('margens_marcas', JSON.stringify(margensMarcas))
   ]).then(function() {
     msg.style.color = '#00a86b';
-    msg.textContent = 'Configuracoes salvas com sucesso!';
+    msg.textContent = 'Configuracoes salvas! Apos alterar margens, clique em "Recalcular Precos".';
     btn.disabled = false;
     btn.textContent = 'Salvar Configuracoes';
   }).catch(function(e) {
@@ -338,6 +364,69 @@ function salvarConfigs() {
     msg.textContent = 'Erro: ' + e.message;
     btn.disabled = false;
     btn.textContent = 'Salvar Configuracoes';
+  });
+}
+
+function carregarMarcas() {
+  var box = document.getElementById('margensMarcasBox');
+  if (!box) return;
+  box.innerHTML = '<div class="loading" style="padding:15px;font-size:13px">Carregando marcas...</div>';
+
+  var margens = {};
+  try { margens = JSON.parse(configCache.margens_marcas || '{}'); } catch (e) { margens = {}; }
+
+  var headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+  var baseUrl = SUPABASE_URL + '/rest/v1/produtos?select=categoria&ativo=eq.true&limit=1000&offset=';
+  Promise.all([
+    fetch(baseUrl + '0', { headers: headers }),
+    fetch(baseUrl + '1000', { headers: headers })
+  ]).then(function(resps) {
+    return Promise.all(resps.map(function(r) { return r.json(); }));
+  }).then(function(dados) {
+    var set = {};
+    dados.forEach(function(arr) {
+      arr.forEach(function(d) { if (d.categoria) set[d.categoria] = true; });
+    });
+    var marcas = Object.keys(set).sort();
+
+    box.innerHTML = marcas.length
+      ? marcas.map(function(m) {
+          var v = margens[m] != null ? margens[m] : '';
+          return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+            + '<span style="flex:1;font-size:13px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + m + '</span>'
+            + '<input type="number" class="margem-marca" data-marca="' + m.replace(/"/g, '&quot;') + '" value="' + v + '" style="width:64px;padding:6px;border:2px solid #e6e6e6;border-radius:6px;font-size:13px;text-align:center" placeholder="auto">'
+            + '<span style="font-size:12px;color:#999">%</span>'
+            + '</div>';
+        }).join('')
+      : '<div style="padding:12px;color:#999;font-size:13px;text-align:center">Nenhuma marca encontrada</div>';
+  }).catch(function(e) {
+    box.innerHTML = '<div style="padding:12px;color:#e63946;font-size:13px">Erro: ' + e.message + '</div>';
+  });
+}
+
+function recalcularPrecos() {
+  var msg = document.getElementById('configMsg');
+  var btn = document.getElementById('btnRecalcular');
+  if (!msg) return;
+  msg.style.color = '#888';
+  msg.textContent = 'Recalculando precos... (pode levar alguns segundos)';
+  if (btn) btn.disabled = true;
+
+  return fetch(SUPABASE_URL + '/rest/v1/rpc/recalcular_precos', {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: '{}'
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + r.statusText);
+    return r.json();
+  }).then(function(contagem) {
+    msg.style.color = '#00a86b';
+    msg.textContent = contagem + ' precos recalculados com sucesso!';
+    if (btn) btn.disabled = false;
+  }).catch(function(e) {
+    msg.style.color = '#e63946';
+    msg.textContent = 'Erro ao recalcular: ' + e.message + '. Confira se a funcao recalcular_precos existe no Supabase.';
+    if (btn) btn.disabled = false;
   });
 }
 
