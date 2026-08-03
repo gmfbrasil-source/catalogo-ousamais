@@ -382,7 +382,7 @@ function salvarConfigs() {
     var v = input.value.replace(',', '.').trim();
     if (v) {
       var num = parseFloat(v);
-      if (!isNaN(num)) margensMarcas[input.getAttribute('data-marca')] = num;
+      if (!isNaN(num)) margensMarcas[input.getAttribute('data-marca').trim()] = num;
     }
   });
 

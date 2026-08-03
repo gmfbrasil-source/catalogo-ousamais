@@ -99,7 +99,8 @@ def carregar_config_margens(supabase):
             if row["chave"] == "margem_global" and row["valor"]:
                 global_margem = float(row["valor"])
             if row["chave"] == "margens_marcas" and row["valor"]:
-                margens_marcas = json.loads(row["valor"])
+                raw = json.loads(row["valor"])
+                margens_marcas = {k.strip(): v for k, v in raw.items()}
     except Exception as e:
         print(f"  Aviso: nao foi possivel carregar margens da config: {e}")
     return global_margem, margens_marcas
@@ -109,7 +110,7 @@ def margem_efetiva(margem_produto, categoria, margens_marcas, global_margem):
     """Prioridade: margem do produto > margem da marca > margem global."""
     if margem_produto is not None:
         return float(margem_produto)
-    marca_m = margens_marcas.get(categoria) if margens_marcas else None
+    marca_m = margens_marcas.get((categoria or "").strip()) if margens_marcas else None
     if marca_m:
         return float(marca_m)
     return float(global_margem)
@@ -144,7 +145,7 @@ def sync_supabase(produtos):
 
         nome = p.get("name", "Sem nome")
         preco_original = p.get("salePromotionalPrice") or p.get("salePrice") or 0
-        categoria = p.get("categoryName", "")
+        categoria = (p.get("categoryName", "") or "").strip()
 
         margem_produto = anterior.get(produto_id, {}).get("margem")
         margem_atual = margem_efetiva(margem_produto, categoria, margens_marcas, global_margem)

@@ -12,13 +12,13 @@ INSERT INTO config (chave, valor) VALUES
 ON CONFLICT (chave) DO NOTHING;
 
 -- 3. Funcao para recalcular todos os precos conforme as margens configuradas
+--    (ignora espacos extras nas categorias e nas chaves das marcas)
 CREATE OR REPLACE FUNCTION recalcular_precos()
 RETURNS INTEGER AS $$
 DECLARE
   v_global NUMERIC := 30;
   v_marcas JSONB := '{}'::jsonb;
   v_count INTEGER := 0;
-  v_reg RECORD;
 BEGIN
   SELECT COALESCE(NULLIF((SELECT valor FROM config WHERE chave='margem_global'), ''), '30')::numeric
   INTO v_global;
@@ -26,19 +26,18 @@ BEGIN
   SELECT COALESCE(NULLIF((SELECT valor FROM config WHERE chave='margens_marcas'), ''), '{}')::jsonb
   INTO v_marcas;
 
-  FOR v_reg IN
-    SELECT id, preco_original, margem, categoria
-    FROM produtos
-    WHERE ativo AND preco_original > 0
-  LOOP
-    UPDATE produtos SET preco_venda = ROUND(v_reg.preco_original * (1 + COALESCE(
-      v_reg.margem,
-      (v_marcas->>v_reg.categoria)::numeric,
+  WITH mapa AS (
+    SELECT jsonb_object_agg(trim(key), value::numeric) AS m
+    FROM jsonb_each_text(v_marcas)
+  )
+  UPDATE produtos
+  SET preco_venda = ROUND(preco_original * (1 + COALESCE(
+      margem,
+      ((SELECT m FROM mapa) ->> trim(categoria)),
       v_global) / 100), 2)
-    WHERE id = v_reg.id;
-    v_count := v_count + 1;
-  END LOOP;
+  WHERE ativo AND preco_original > 0;
 
+  GET DIAGNOSTICS v_count = ROW_COUNT;
   RETURN v_count;
 END;
 $$ LANGUAGE plpgsql;
