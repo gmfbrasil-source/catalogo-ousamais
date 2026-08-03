@@ -100,6 +100,8 @@ var pagina = 0;
 var busca = '';
 var filtroMarca = '';
 var editando = {};
+var margemGlobal = 30;
+var margensMarcas = {};
 
 function login() {
   app.innerHTML = '<div class="login-box"><h2>Acesso Restrito</h2><input type="password" id="senhaInput" placeholder="Digite a senha" onkeydown="if(event.key===\'Enter\')entrar()"><button onclick="entrar()">Entrar</button></div>';
@@ -125,6 +127,7 @@ function carregar() {
   render();
   contar();
   buscar();
+  carregarConfig();
 }
 
 function contar() {
@@ -189,6 +192,27 @@ function formatarPreco(valor) {
   return 'R$ ' + parseFloat(valor).toFixed(2).replace('.', ',');
 }
 
+function margemEfetiva(p) {
+  if (p.margem != null) return parseFloat(p.margem);
+  var m = margensMarcas[(p.categoria || '').trim()];
+  if (m != null) return parseFloat(m);
+  return margemGlobal;
+}
+
+function atualizarBadgeMargem(id) {
+  var inp = document.getElementById('mg_' + id);
+  var bdg = document.getElementById('mgb_' + id);
+  if (!inp || !bdg) return;
+  var val = inp.value.replace(',', '.').trim();
+  var num = val ? parseFloat(val) : null;
+  if (num != null && !isNaN(num)) {
+    bdg.textContent = num + '%';
+  } else {
+    var prod = produtos.filter(function(x) { return String(x.id) === String(id); })[0];
+    bdg.textContent = prod ? margemEfetiva(prod) + '%' : 'auto';
+  }
+}
+
 function render() {
   if (!produtos) return;
 
@@ -216,7 +240,8 @@ function render() {
           + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
           + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
           + '</td>'
-          + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="auto" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'"></td>'
+          + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="auto" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\';atualizarBadgeMargem(\'' + p.id + '\')">'
+          + ' <span class="badge" id="mgb_' + p.id + '">' + (p.margem != null ? parseFloat(p.margem) + '%' : margemEfetiva(p) + '%') + '</span></td>'
           + '<td><button class="btn-salvar" id="btn_' + p.id + '" onclick="salvar(\'' + p.id + '\')">Salvar</button> <span class="ok-msg" id="ok_' + p.id + '"></span></td>'
           + '</tr>';
       }).join('')
@@ -249,6 +274,8 @@ function carregarConfig() {
   return api('config?select=*').then(function(r) { return r.json(); }).then(function(dados) {
     configCache = {};
     dados.forEach(function(item) { configCache[item.chave] = item.valor; });
+    if (configCache.margem_global) margemGlobal = parseFloat(configCache.margem_global);
+    try { margensMarcas = JSON.parse(configCache.margens_marcas || '{}'); } catch (e) { margensMarcas = {}; }
     return configCache;
   });
 }
