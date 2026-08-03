@@ -233,6 +233,8 @@ function render() {
     + produtos.map(function(p) {
         var pm = p.preco_marca;
         var desconto = pm ? Math.round((1 - parseFloat(p.preco_venda) / parseFloat(pm)) * 100) : 0;
+        var me = margemEfetiva(p);
+        var txtMe = (me % 1 === 0) ? String(me) : me.toFixed(1).replace('.', ',');
         return '<tr>'
           + '<td class="nome-cell">' + p.nome + '</td>'
           + '<td>' + (p.categoria || '-') + '</td>'
@@ -240,8 +242,8 @@ function render() {
           + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
           + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
           + '</td>'
-          + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="auto" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\';atualizarBadgeMargem(\'' + p.id + '\')">'
-          + ' <span class="badge" id="mgb_' + p.id + '">' + (p.margem != null ? parseFloat(p.margem) + '%' : margemEfetiva(p) + '%') + '</span></td>'
+          + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="' + txtMe + '" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\';atualizarBadgeMargem(\'' + p.id + '\')">'
+          + ' <span class="badge" id="mgb_' + p.id + '">' + (p.margem != null ? parseFloat(p.margem) + '%' : txtMe + '%') + '</span></td>'
           + '<td><button class="btn-salvar" id="btn_' + p.id + '" onclick="salvar(\'' + p.id + '\')">Salvar</button> <span class="ok-msg" id="ok_' + p.id + '"></span></td>'
           + '</tr>';
       }).join('')
@@ -275,7 +277,11 @@ function carregarConfig() {
     configCache = {};
     dados.forEach(function(item) { configCache[item.chave] = item.valor; });
     if (configCache.margem_global) margemGlobal = parseFloat(configCache.margem_global);
-    try { margensMarcas = JSON.parse(configCache.margens_marcas || '{}'); } catch (e) { margensMarcas = {}; }
+    try {
+      margensMarcas = {};
+      var rawMarcas = JSON.parse(configCache.margens_marcas || '{}');
+      Object.keys(rawMarcas).forEach(function(m) { margensMarcas[m.trim()] = parseFloat(rawMarcas[m]); });
+    } catch (e) { margensMarcas = {}; }
     return configCache;
   });
 }
