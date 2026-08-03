@@ -238,7 +238,7 @@ function render() {
         var me = margemEfetiva(p);
         var txtMe = (me % 1 === 0) ? String(me) : me.toFixed(1).replace('.', ',');
         return '<tr>'
-          + '<td class="nome-cell">' + p.nome + '</td>'
+          + '<td class="nome-cell" title="' + p.nome.replace(/"/g, '&quot;') + '">' + p.nome + '</td>'
           + '<td>' + (p.categoria || '-') + '</td>'
           + '<td id="preco_' + p.id + '">' + formatarPreco(p.preco_venda) + '</td>'
           + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
