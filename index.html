@@ -206,7 +206,7 @@
   </div>
   <p class="sub" id="headerSub">Mais de <strong>1.000 produtos</strong> direto da distribuidora para voce</p>
   <div class="search-bar">
-    <input type="text" id="busca" placeholder="O que procura hoje?" oninput="filtrar()">
+    <input type="text" id="busca" placeholder="O que procura hoje?" oninput="onBusca()">
   </div>
 </div>
 
@@ -334,13 +334,27 @@ function renderizarFiltros() {
 
   const categorias = [...new Set(todosProdutos.map(function(p) { return p.categoria; }).filter(function(c) { return c && c.trim(); }))].sort();
 
+  function limparMarca() {
+    categoriaAtiva = '';
+    container.querySelectorAll('.sidebar-item').forEach(function(b) { b.classList.remove('ativo'); });
+    var todos = container.querySelector('.sidebar-item');
+    if (todos) todos.classList.add('ativo');
+  }
+
   function selecionar(cat, el) {
+    var campo = document.getElementById('busca');
+    if (campo && campo.value) campo.value = '';
     categoriaAtiva = cat;
     container.querySelectorAll('.sidebar-item').forEach(function(b) { b.classList.remove('ativo'); });
     el.classList.add('ativo');
     filtrar();
     fecharSidebar();
   }
+
+  window.onBusca = function() {
+    if (categoriaAtiva) limparMarca();
+    filtrar();
+  };
 
   var todos = document.createElement('div');
   todos.className = 'sidebar-item ativo';
@@ -373,6 +387,8 @@ document.getElementById('sidebarOverlay').onclick = fecharSidebar;
 document.getElementById('btnFavs').onclick = function() {
   somenteFavoritos = !somenteFavoritos;
   document.getElementById('btnFavs').classList.toggle('ativo', somenteFavoritos);
+  var campo = document.getElementById('busca');
+  if (campo) campo.value = '';
   filtrar();
 };
 document.getElementById('btnCarrinho').onclick = abrirCarrinho;
