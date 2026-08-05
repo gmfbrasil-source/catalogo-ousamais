@@ -207,7 +207,7 @@ function salvar(id) {
 
 function formatarPreco(valor) {
   if (valor == null) return '';
-  return 'R$ ' + parseFloat(valor).toFixed(2).replace('.', ',');
+  return 'R$ ' + Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function margemEfetiva(p) {
@@ -245,7 +245,7 @@ function render() {
           + '<td id="preco_' + p.id + '">' + formatarPreco(p.preco_venda) + '</td>'
           + '<td class="preco-compra">' + formatarPreco(p.preco_original) + '</td>'
           + '<td class="' + (p.disponivel === false ? 'sem-estoque' : '') + '">' + (p.disponivel === false ? 'Indisponivel' : (p.estoque != null ? p.estoque : '-')) + '</td>'
-          + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm || '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
+          + '<td><input class="preco-input' + (pm ? ' tem-marca' : '') + '" id="pm_' + p.id + '" type="text" value="' + (pm ? formatarPreco(pm).replace('R$ ', '') : '') + '" placeholder="0,00" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'">'
           + (pm ? ' <span class="badge">-' + desconto + '%</span>' : '')
           + '</td>'
           + '<td><input class="preco-input" id="mg_' + p.id + '" type="text" value="' + (p.margem != null ? p.margem : '') + '" placeholder="' + txtMe + '" oninput="document.getElementById(\'ok_' + p.id + '\').textContent=\'\'"></td>'
