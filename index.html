@@ -43,11 +43,16 @@
   @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.6); } 100% { transform: scale(1); } }
 
   .search-bar { max-width: 1400px; margin: 16px auto 0; }
-  .search-bar input {
-    width: 100%; padding: 11px 16px; border: 2px solid #e6e6e6; border-radius: 10px;
+  .search-box { position: relative; }
+  .search-box .lupa {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px; color: #999; pointer-events: none;
+  }
+  .search-box input {
+    width: 100%; padding: 11px 16px 11px 44px; border: 2px solid #e6e6e6; border-radius: 10px;
     font-size: 14px; outline: none; transition: border-color .3s; background: white;
   }
-  .search-bar input:focus { border-color: #f2b622; }
+  .search-box input:focus { border-color: #f2b622; }
 
   .banner-wrap { max-width: 1400px; margin: 0 auto; padding: 14px 20px 0; }
   .banner-wrap img { width: 100%; border-radius: 12px; display: none; max-height: 300px; object-fit: cover; }
@@ -205,9 +210,12 @@
     </div>
   </div>
   <p class="sub" id="headerSub">Mais de <strong>1.000 produtos</strong> direto da distribuidora para voce</p>
-  <div class="search-bar">
+<div class="search-bar">
+  <div class="search-box">
+    <svg class="lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input type="text" id="busca" placeholder="O que procura hoje?" oninput="onBusca()">
   </div>
+</div>
 </div>
 
 <div class="banner-wrap">
