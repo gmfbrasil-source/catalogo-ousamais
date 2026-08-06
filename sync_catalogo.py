@@ -10,7 +10,6 @@ import re
 import json
 import time
 import os
-import unicodedata
 from urllib.parse import quote
 from datetime import datetime
 
@@ -205,40 +204,6 @@ def sync_supabase(produtos):
             item["disponivel"] = disponivel_flag
         produtos_para_sync.append(item)
         ids_fornecedor.add(produto_id)
-
-    # Deduplica produtos com o mesmo nome (o feed lista o mesmo produto
-    # 2x com ids diferentes). Mantem 1 e marca o restante como inativo.
-    por_nome = {}
-    for p in produtos_para_sync:
-        chave = "".join(c for c in unicodedata.normalize("NFD", (p["nome"] or "").lower())
-                        if unicodedata.category(c) != "Mn")
-        por_nome.setdefault(chave, []).append(p)
-
-    duplicados = []
-    for chave, grupo in por_nome.items():
-        if len(grupo) < 2:
-            continue
-
-        def chave_primaria(p):
-            ant = anterior.get(p["id"], {})
-            return (
-                0 if ant.get("ativo", True) else 1,
-                0 if p.get("preco_marca") else 1,
-                -(p.get("estoque") or 0),
-                p["id"],
-            )
-
-        grupo.sort(key=chave_primaria)
-        primario = grupo[0]
-        for dup in grupo[1:]:
-            if not primario.get("preco_marca") and dup.get("preco_marca"):
-                primario["preco_marca"] = dup["preco_marca"]
-            dup["ativo"] = False
-            duplicados.append(dup["id"])
-
-    if duplicados:
-        print(f"  Deduplicacao: {len(duplicados)} produtos repetidos marcados como inativos")
-
 
     # Detecta alteracoes
     novos = []
