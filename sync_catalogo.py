@@ -194,11 +194,15 @@ def sync_supabase(produtos):
             "nome": nome,
             "preco_original": preco_original,
             "preco_venda": preco_venda,
-            "preco_marca": preco_marca,
             "categoria": categoria,
             "imagem_url": imagem,
             "ativo": True,
         }
+        # So inclui preco_marca quando ha um valor real: como o feed Kyte
+        # nao fornece preco de marca, o campo ausente mantem o valor manual
+        # ja existente no banco (evita zerar preco_marca no sync)
+        if preco_marca:
+            item["preco_marca"] = preco_marca
         if disponibilidade:
             item["estoque"] = estoque
             item["disponivel"] = disponivel_flag
