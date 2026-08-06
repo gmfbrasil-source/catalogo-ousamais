@@ -133,6 +133,26 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .footer { text-align: center; padding: 30px; color: #999; font-size: 13px; }
+  .footer .footer-links { margin-top: 8px; font-size: 12px; }
+  .footer a { color: #999; text-decoration: underline; }
+  .footer .sep { color: #ccc; margin: 0 8px; }
+  .footer .link-admin { color: #999; font-size: 11px; text-decoration: none; }
+
+  .priv-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 290; }
+  .priv-overlay.ativa { display: block; }
+  .priv-modal {
+    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 600px; max-width: 92vw; max-height: 84vh; background: white; border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.3); z-index: 300; flex-direction: column; overflow: hidden;
+  }
+  .priv-modal.ativa { display: flex; }
+  .priv-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e6e6e6; }
+  .priv-header h3 { font-size: 16px; color: #0b2b40; margin: 0; }
+  .priv-header button { width: 32px; height: 32px; border: none; background: #eee8eb; color: #0b2b40; border-radius: 8px; font-size: 16px; cursor: pointer; }
+  .priv-body { flex: 1; overflow-y: auto; padding: 18px 20px; font-size: 13.5px; line-height: 1.6; color: #333; }
+  .priv-body h4 { margin: 14px 0 4px; font-size: 14px; color: #0b2b40; }
+  .priv-body p { margin: 6px 0; }
+  .priv-footer { padding: 14px 20px; border-top: 1px solid #e6e6e6; }
 
   .btn-topo {
     position: fixed; bottom: 24px; right: 24px; z-index: 200;
@@ -242,7 +262,11 @@
 
     <div class="footer">
       <div id="footerText">Ousamais &copy; 2026 - Precos sujeitos a alteracao sem aviso previo</div>
-      <a href="/admin.html" style="color:#999;font-size:11px;text-decoration:none">Admin</a>
+      <div class="footer-links">
+        <a href="#" onclick="abrirPrivacidade();return false;" title="Aviso de Privacidade">Aviso de Privacidade</a>
+        <span class="sep">|</span>
+        <a href="/admin.html" class="link-admin">Admin</a>
+      </div>
     </div>
   </main>
 
@@ -259,6 +283,29 @@
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer" id="cartFooter"></div>
 </aside>
+
+<div class="priv-overlay" id="privOverlay"></div>
+<div class="priv-modal" id="privModal" role="dialog" aria-modal="true" aria-labelledby="privTitulo">
+  <div class="priv-header">
+    <h3 id="privTitulo">Aviso de Privacidade &ndash; Cat&aacute;logo Ousamais</h3>
+    <button onclick="fecharPrivacidade()" aria-label="Fechar">&#10005;</button>
+  </div>
+  <div class="priv-body">
+    <p>Bem-vindo ao nosso cat&aacute;logo online! A sua privacidade &eacute; muito importante para n&oacute;s. Em conformidade com a LGPD (Lei Geral de Prote&ccedil;&atilde;o de Dados), queremos ser totalmente transparentes sobre como funciona o nosso site:</p>
+    <h4>Coleta de dados no site</h4>
+    <p>Este site funciona estritamente como um cat&aacute;logo virtual. N&oacute;s n&atilde;o coletamos, armazenamos ou tratamos nenhum dado pessoal (como seu nome, e-mail ou CPF) enquanto voc&ecirc; navega pelas nossas p&aacute;ginas ou adiciona produtos ao carrinho.</p>
+    <h4>Redirecionamento para o WhatsApp</h4>
+    <p>Quando voc&ecirc; decide finalizar seu pedido ou tirar d&uacute;vidas, voc&ecirc; ser&aacute; redirecionado para o nosso canal oficial de atendimento no WhatsApp.</p>
+    <h4>Como tratamos seus dados no WhatsApp</h4>
+    <p>Ao iniciar a conversa, n&oacute;s utilizaremos apenas as informa&ccedil;&otilde;es estritamente necess&aacute;rias (como seu nome e n&uacute;mero de telefone) para processar seu atendimento, responder &agrave;s suas d&uacute;vidas e combinar a entrega dos produtos. N&oacute;s n&atilde;o compartilhamos suas informa&ccedil;&otilde;es com terceiros e n&atilde;o enviamos mensagens de spam.</p>
+    <h4>Seus Direitos</h4>
+    <p>Voc&ecirc; pode, a qualquer momento no nosso atendimento do WhatsApp, solicitar a exclus&atilde;o do seu contato das nossas listas operacionais.</p>
+    <p><em>Atualizado em: Agosto de 2026.</em></p>
+  </div>
+  <div class="priv-footer">
+    <button class="btn-pedido" onclick="fecharPrivacidade()">Entendi</button>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL = 'https://qfewcmoyzrezyxasvqny.supabase.co';
@@ -401,6 +448,20 @@ document.getElementById('btnFavs').onclick = function() {
 };
 document.getElementById('btnCarrinho').onclick = abrirCarrinho;
 document.getElementById('cartOverlay').onclick = fecharCarrinho;
+
+function abrirPrivacidade() {
+  document.getElementById('privOverlay').classList.add('ativa');
+  document.getElementById('privModal').classList.add('ativa');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharPrivacidade() {
+  document.getElementById('privOverlay').classList.remove('ativa');
+  document.getElementById('privModal').classList.remove('ativa');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('privOverlay').onclick = fecharPrivacidade;
 
 function filtrar() {
   var busca = document.getElementById('busca').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
