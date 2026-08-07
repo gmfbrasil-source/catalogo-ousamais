@@ -129,14 +129,24 @@ def sync_supabase(produtos):
     except Exception:
         print("  Aviso: colunas estoque/disponivel nao encontradas. Rode a migration disponibilidade.sql no Supabase.")
 
-    # Busca estado anterior para comparar
+    # Busca estado anterior para comparar (com paginacao: o PostgREST retorna
+    # no maximo 1000 linhas por request; sem paginar metade do catalogo era
+    # tratada como "produto novo" e perdia o preco_marca manual)
     print("Obtendo estado anterior do catalogo...")
     anterior = {}
     try:
         cols_ant = "id,nome,preco_venda,ativo,margem,preco_marca" + (",disponivel" if disponibilidade else "")
-        todos = supabase.table("produtos").select(cols_ant).execute()
-        for reg in todos.data:
-            anterior[reg["id"]] = reg
+        offset = 0
+        while True:
+            todos = supabase.table("produtos").select(cols_ant).range(offset, offset + 999).execute()
+            if not todos.data:
+                break
+            for reg in todos.data:
+                anterior[reg["id"]] = reg
+            if len(todos.data) < 1000:
+                break
+            offset += 1000
+        print(f"  Estado anterior: {len(anterior)} produtos")
     except Exception as e:
         print(f"  Aviso: nao foi possivel obter estado anterior: {e}")
 
@@ -194,15 +204,11 @@ def sync_supabase(produtos):
             "nome": nome,
             "preco_original": preco_original,
             "preco_venda": preco_venda,
+            "preco_marca": preco_marca,
             "categoria": categoria,
             "imagem_url": imagem,
             "ativo": True,
         }
-        # So inclui preco_marca quando ha um valor real: como o feed Kyte
-        # nao fornece preco de marca, o campo ausente mantem o valor manual
-        # ja existente no banco (evita zerar preco_marca no sync)
-        if preco_marca:
-            item["preco_marca"] = preco_marca
         if disponibilidade:
             item["estoque"] = estoque
             item["disponivel"] = disponivel_flag
