@@ -133,7 +133,7 @@ function carregar() {
 }
 
 function contar() {
-  var filtros = 'ativo=eq.true' + (filtroMarca ? '&preco_marca=is.' + (filtroMarca === 'com' ? 'not.null' : 'null') : '');
+  var filtros = 'ativo=eq.true' + (filtroMarca ? '&preco_marca=is.' + (filtroMarca === 'com' ? 'not_null' : 'null') : '');
   api('produtos?select=count&' + filtros).then(function(r) { return r.json(); }).then(function(d) { total = d[0].count; render(); }).catch(function() {});
 }
 
@@ -141,13 +141,16 @@ function buscar() {
   var offset = pagina * LIMITE;
   var filtros = 'ativo=eq.true&order=categoria.asc,nome.asc&limit=' + LIMITE + '&offset=' + offset;
   if (filtroMarca) {
-    filtros += '&preco_marca=is.' + (filtroMarca === 'com' ? 'not.null' : 'null');
+    filtros += '&preco_marca=is.' + (filtroMarca === 'com' ? 'not_null' : 'null');
   }
   if (busca) {
     filtros += '&or=(nome.ilike.*' + encodeURIComponent(busca) + '*,categoria.ilike.*' + encodeURIComponent(busca) + '*)';
   }
-  api('produtos?select=id,nome,categoria,preco_original,preco_venda,preco_marca,margem,estoque,disponivel&' + filtros).then(function(r) { return r.json(); }).then(function(d) {
-    produtos = d;
+  api('produtos?select=id,nome,categoria,preco_original,preco_venda,preco_marca,margem,estoque,disponivel&' + filtros).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(d) {
+    produtos = Array.isArray(d) ? d : [];
     render();
   }).catch(function(e) { app.innerHTML = '<div class="erro">Erro: ' + e.message + '</div>'; });
 }
